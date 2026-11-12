@@ -1,8 +1,11 @@
 
 package com.fiap.minicity.controller;
 
-import com.fiap.minicity.models.CategoriaOcorrencia;
+import com.fiap.minicity.dto.CategoriaOcorrenciaDTO;
 import com.fiap.minicity.service.CategoriaOcorrenciaService;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,27 +21,38 @@ public class CategoriaOcorrenciaController {
     }
 
     @GetMapping
-    public List<CategoriaOcorrencia> listar() {
-        return service.listar();
+    public ResponseEntity<List<CategoriaOcorrenciaDTO>> listar() {
+        return ResponseEntity.ok(service.listar());
     }
 
     @GetMapping("/{id}")
-    public CategoriaOcorrencia buscarPorId(@PathVariable Long id) {
-        return service.buscarPorId(id);
+    public ResponseEntity<CategoriaOcorrenciaDTO> buscarPorId(
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(service.buscarPorId(id));
     }
 
     @PostMapping
-    public CategoriaOcorrencia cadastrar(@RequestBody CategoriaOcorrencia categoria) {
-        return service.cadastrar(categoria);
+    public ResponseEntity<CategoriaOcorrenciaDTO> cadastrar(
+            @RequestBody CategoriaOcorrenciaDTO categoriaDTO
+    ) {
+        CategoriaOcorrenciaDTO categoria = service.cadastrar(categoriaDTO);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(categoria);
     }
 
     @PutMapping("/{id}")
-    public CategoriaOcorrencia atualizar(@PathVariable Long id, @RequestBody CategoriaOcorrencia categoria) {
-        return service.atualizar(id, categoria);
+    public ResponseEntity<CategoriaOcorrenciaDTO> atualizar(
+            @PathVariable Long id,
+            @RequestBody CategoriaOcorrenciaDTO categoriaDTO
+    ) {
+        return ResponseEntity.ok(service.atualizar(id, categoriaDTO));
     }
 
     @DeleteMapping("/{id}")
-    public boolean deletar(@PathVariable Long id) {
-        return service.deletar(id);
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        service.deletar(id);
+
+        return ResponseEntity.noContent().build();
     }
 }

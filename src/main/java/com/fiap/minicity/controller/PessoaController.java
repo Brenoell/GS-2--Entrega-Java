@@ -1,8 +1,11 @@
 
 package com.fiap.minicity.controller;
 
-import com.fiap.minicity.models.Pessoa;
+import com.fiap.minicity.dto.PessoaDTO;
 import com.fiap.minicity.service.PessoaService;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,27 +21,38 @@ public class PessoaController {
     }
 
     @GetMapping
-    public List<Pessoa> listar() {
-        return service.listar();
+    public ResponseEntity<List<PessoaDTO>> listar() {
+        return ResponseEntity.ok(service.listar());
     }
 
     @GetMapping("/{id}")
-    public Pessoa buscarPorId(@PathVariable Long id) {
-        return service.buscarPorId(id);
+    public ResponseEntity<PessoaDTO> buscarPorId(
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(service.buscarPorId(id));
     }
 
     @PostMapping
-    public Pessoa cadastrar(@RequestBody Pessoa pessoa) {
-        return service.cadastrar(pessoa);
+    public ResponseEntity<PessoaDTO> cadastrar(
+            @RequestBody PessoaDTO pessoaDTO
+    ) {
+        PessoaDTO pessoa = service.cadastrar(pessoaDTO);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(pessoa);
     }
 
     @PutMapping("/{id}")
-    public Pessoa atualizar(@PathVariable Long id, @RequestBody Pessoa pessoa) {
-        return service.atualizar(id, pessoa);
+    public ResponseEntity<PessoaDTO> atualizar(
+            @PathVariable Long id,
+            @RequestBody PessoaDTO pessoaDTO
+    ) {
+        return ResponseEntity.ok(service.atualizar(id, pessoaDTO));
     }
 
     @DeleteMapping("/{id}")
-    public boolean deletar(@PathVariable Long id) {
-        return service.deletar(id);
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        service.deletar(id);
+
+        return ResponseEntity.noContent().build();
     }
 }

@@ -1,9 +1,13 @@
+
 package com.fiap.minicity.controller;
 
-import com.fiap.minicity.models.Distrito;
+import com.fiap.minicity.dto.DistritoDTO;
 import com.fiap.minicity.service.DistritoService;
+
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,27 +21,38 @@ public class DistritoController {
     }
 
     @GetMapping
-    public List<Distrito> listar() {
-        return service.listar();
+    public ResponseEntity<List<DistritoDTO>> listar() {
+        return ResponseEntity.ok(service.listar());
     }
 
     @GetMapping("/{id}")
-    public Distrito buscarPorId(@PathVariable Long id) {
-        return service.buscarPorId(id);
+    public ResponseEntity<DistritoDTO> buscarPorId(
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(service.buscarPorId(id));
     }
 
     @PostMapping
-    public Distrito cadastrar(@RequestBody Distrito distrito) {
-        return service.cadastrar(distrito);
+    public ResponseEntity<DistritoDTO> cadastrar(
+            @RequestBody DistritoDTO distritoDTO
+    ) {
+        DistritoDTO distrito = service.cadastrar(distritoDTO);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(distrito);
     }
 
     @PutMapping("/{id}")
-    public Distrito atualizar(@PathVariable Long id, @RequestBody Distrito distrito) {
-        return service.atualizar(id, distrito);
+    public ResponseEntity<DistritoDTO> atualizar(
+            @PathVariable Long id,
+            @RequestBody DistritoDTO distritoDTO
+    ) {
+        return ResponseEntity.ok(service.atualizar(id, distritoDTO));
     }
 
     @DeleteMapping("/{id}")
-    public boolean deletar(@PathVariable Long id) {
-        return service.deletar(id);
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        service.deletar(id);
+
+        return ResponseEntity.noContent().build();
     }
 }

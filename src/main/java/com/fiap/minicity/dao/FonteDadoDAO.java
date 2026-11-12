@@ -1,9 +1,12 @@
+
 package com.fiap.minicity.dao;
 
 import com.fiap.minicity.models.FonteDado;
-import java.sql.*;
-import java.util.*;
 import org.springframework.stereotype.Repository;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Repository
 public class FonteDadoDAO {
@@ -11,12 +14,17 @@ public class FonteDadoDAO {
     public List<FonteDado> listar() {
         List<FonteDado> lista = new ArrayList<>();
 
+        String sql = "SELECT id_fonte, nm_fonte, ds_tipo, ds_url " +
+                "FROM FONTE_DADO ORDER BY id_fonte";
+
         try (Connection c = ConnectionFactory.obterConexao();
-             PreparedStatement ps = c.prepareStatement(
-                     "SELECT id_fonte,nm_fonte,ds_tipo,ds_url FROM FONTE_DADO ORDER BY id_fonte");
+             PreparedStatement ps = c.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
-            while (rs.next()) lista.add(mapear(rs));
+            while (rs.next()) {
+                lista.add(mapear(rs));
+            }
+
             return lista;
 
         } catch (SQLException e) {
@@ -25,9 +33,11 @@ public class FonteDadoDAO {
     }
 
     public FonteDado buscarPorId(Long id) {
+        String sql = "SELECT id_fonte, nm_fonte, ds_tipo, ds_url " +
+                "FROM FONTE_DADO WHERE id_fonte = ?";
+
         try (Connection c = ConnectionFactory.obterConexao();
-             PreparedStatement ps = c.prepareStatement(
-                     "SELECT id_fonte,nm_fonte,ds_tipo,ds_url FROM FONTE_DADO WHERE id_fonte=?")) {
+             PreparedStatement ps = c.prepareStatement(sql)) {
 
             ps.setLong(1, id);
 
@@ -41,16 +51,21 @@ public class FonteDadoDAO {
     }
 
     public FonteDado cadastrar(FonteDado x) {
+        String sql = "INSERT INTO FONTE_DADO(nm_fonte, ds_tipo, ds_url) " +
+                "VALUES (?, ?, ?)";
+
         try (Connection c = ConnectionFactory.obterConexao();
              PreparedStatement ps = c.prepareStatement(
-                     "INSERT INTO FONTE_DADO(nm_fonte,ds_tipo,ds_url) VALUES(?,?,?)",
-                     new String[]{"ID_FONTE"})) {
+                     sql, new String[]{"ID_FONTE"})) {
 
             preencher(ps, x);
+
             ps.executeUpdate();
 
             try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) x.setId(rs.getLong(1));
+                if (rs.next()) {
+                    x.setId(rs.getLong(1));
+                }
             }
 
             return x;
@@ -61,16 +76,21 @@ public class FonteDadoDAO {
     }
 
     public FonteDado atualizar(Long id, FonteDado x) {
+        String sql = "UPDATE FONTE_DADO SET nm_fonte = ?, ds_tipo = ?, " +
+                "ds_url = ? WHERE id_fonte = ?";
+
         try (Connection c = ConnectionFactory.obterConexao();
-             PreparedStatement ps = c.prepareStatement(
-                     "UPDATE FONTE_DADO SET nm_fonte=?,ds_tipo=?,ds_url=? WHERE id_fonte=?")) {
+             PreparedStatement ps = c.prepareStatement(sql)) {
 
             preencher(ps, x);
             ps.setLong(4, id);
 
-            if (ps.executeUpdate() == 0) return null;
+            if (ps.executeUpdate() == 0) {
+                return null;
+            }
 
             x.setId(id);
+
             return x;
 
         } catch (SQLException e) {
@@ -79,11 +99,13 @@ public class FonteDadoDAO {
     }
 
     public boolean deletar(Long id) {
+        String sql = "DELETE FROM FONTE_DADO WHERE id_fonte = ?";
+
         try (Connection c = ConnectionFactory.obterConexao();
-             PreparedStatement ps = c.prepareStatement(
-                     "DELETE FROM FONTE_DADO WHERE id_fonte=?")) {
+             PreparedStatement ps = c.prepareStatement(sql)) {
 
             ps.setLong(1, id);
+
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
@@ -91,7 +113,9 @@ public class FonteDadoDAO {
         }
     }
 
-    private void preencher(PreparedStatement ps, FonteDado x) throws SQLException {
+    private void preencher(PreparedStatement ps, FonteDado x)
+            throws SQLException {
+
         ps.setString(1, x.getNomeFonte());
         ps.setString(2, x.getTipo());
         ps.setString(3, x.getUrl());

@@ -1,8 +1,11 @@
 
 package com.fiap.minicity.controller;
 
+import com.fiap.minicity.dto.ComentarioDTO;
+import com.fiap.minicity.mapper.ComentarioMapper;
 import com.fiap.minicity.models.Comentario;
 import com.fiap.minicity.service.ComentarioService;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,23 +21,39 @@ public class ComentarioController {
     }
 
     @GetMapping
-    public List<Comentario> listar() {
-        return service.listar();
+    public List<ComentarioDTO> listar() {
+        return service.listar()
+                .stream()
+                .map(ComentarioMapper::toDTO)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public Comentario buscarPorId(@PathVariable Long id) {
-        return service.buscarPorId(id);
+    public ComentarioDTO buscarPorId(@PathVariable Long id) {
+        Comentario comentario = service.buscarPorId(id);
+
+        return ComentarioMapper.toDTO(comentario);
     }
 
     @PostMapping
-    public Comentario cadastrar(@RequestBody Comentario comentario) {
-        return service.cadastrar(comentario);
+    public ComentarioDTO cadastrar(@RequestBody ComentarioDTO comentarioDTO) {
+        Comentario comentario = ComentarioMapper.toModel(comentarioDTO);
+
+        Comentario comentarioCadastrado = service.cadastrar(comentario);
+
+        return ComentarioMapper.toDTO(comentarioCadastrado);
     }
 
     @PutMapping("/{id}")
-    public Comentario atualizar(@PathVariable Long id, @RequestBody Comentario comentario) {
-        return service.atualizar(id, comentario);
+    public ComentarioDTO atualizar(
+            @PathVariable Long id,
+            @RequestBody ComentarioDTO comentarioDTO
+    ) {
+        Comentario comentario = ComentarioMapper.toModel(comentarioDTO);
+
+        Comentario comentarioAtualizado = service.atualizar(id, comentario);
+
+        return ComentarioMapper.toDTO(comentarioAtualizado);
     }
 
     @DeleteMapping("/{id}")

@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ResponseEntity<ErroDTO> tratarNaoEncontrado(
             RecursoNaoEncontradoException e

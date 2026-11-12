@@ -4,10 +4,13 @@ package com.fiap.minicity.controller;
 import com.fiap.minicity.dto.OcorrenciaDTO;
 import com.fiap.minicity.service.OcorrenciaService;
 
-import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -34,17 +37,25 @@ public class OcorrenciaController {
 
     @PostMapping
     public ResponseEntity<OcorrenciaDTO> cadastrar(
-            @RequestBody OcorrenciaDTO ocorrenciaDTO
+            @Valid @RequestBody OcorrenciaDTO ocorrenciaDTO
     ) {
         OcorrenciaDTO ocorrencia = service.cadastrar(ocorrenciaDTO);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(ocorrencia);
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(ocorrencia.id())
+                .toUri();
+
+        return ResponseEntity
+                .created(location)
+                .body(ocorrencia);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<OcorrenciaDTO> atualizar(
             @PathVariable Long id,
-            @RequestBody OcorrenciaDTO ocorrenciaDTO
+            @Valid @RequestBody OcorrenciaDTO ocorrenciaDTO
     ) {
         return ResponseEntity.ok(service.atualizar(id, ocorrenciaDTO));
     }

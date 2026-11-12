@@ -4,10 +4,13 @@ package com.fiap.minicity.controller;
 import com.fiap.minicity.dto.FonteDadoDTO;
 import com.fiap.minicity.service.FonteDadoService;
 
-import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -34,17 +37,25 @@ public class FonteDadoController {
 
     @PostMapping
     public ResponseEntity<FonteDadoDTO> cadastrar(
-            @RequestBody FonteDadoDTO fonteDTO
+            @Valid @RequestBody FonteDadoDTO fonteDTO
     ) {
         FonteDadoDTO fonte = service.cadastrar(fonteDTO);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(fonte);
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(fonte.id())
+                .toUri();
+
+        return ResponseEntity
+                .created(location)
+                .body(fonte);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<FonteDadoDTO> atualizar(
             @PathVariable Long id,
-            @RequestBody FonteDadoDTO fonteDTO
+            @Valid @RequestBody FonteDadoDTO fonteDTO
     ) {
         return ResponseEntity.ok(service.atualizar(id, fonteDTO));
     }

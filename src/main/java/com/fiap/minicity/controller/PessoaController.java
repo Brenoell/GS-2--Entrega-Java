@@ -4,10 +4,13 @@ package com.fiap.minicity.controller;
 import com.fiap.minicity.dto.PessoaDTO;
 import com.fiap.minicity.service.PessoaService;
 
-import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -34,17 +37,25 @@ public class PessoaController {
 
     @PostMapping
     public ResponseEntity<PessoaDTO> cadastrar(
-            @RequestBody PessoaDTO pessoaDTO
+            @Valid @RequestBody PessoaDTO pessoaDTO
     ) {
         PessoaDTO pessoa = service.cadastrar(pessoaDTO);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(pessoa);
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(pessoa.id())
+                .toUri();
+
+        return ResponseEntity
+                .created(location)
+                .body(pessoa);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<PessoaDTO> atualizar(
             @PathVariable Long id,
-            @RequestBody PessoaDTO pessoaDTO
+            @Valid @RequestBody PessoaDTO pessoaDTO
     ) {
         return ResponseEntity.ok(service.atualizar(id, pessoaDTO));
     }

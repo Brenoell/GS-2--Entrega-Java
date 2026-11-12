@@ -6,8 +6,13 @@ import com.fiap.minicity.mapper.ComentarioMapper;
 import com.fiap.minicity.models.Comentario;
 import com.fiap.minicity.service.ComentarioService;
 
-import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -21,43 +26,61 @@ public class ComentarioController {
     }
 
     @GetMapping
-    public List<ComentarioDTO> listar() {
-        return service.listar()
+    public ResponseEntity<List<ComentarioDTO>> listar() {
+        List<ComentarioDTO> comentarios = service.listar()
                 .stream()
                 .map(ComentarioMapper::toDTO)
                 .toList();
+
+        return ResponseEntity.ok(comentarios);
     }
 
     @GetMapping("/{id}")
-    public ComentarioDTO buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<ComentarioDTO> buscarPorId(
+            @PathVariable Long id
+    ) {
         Comentario comentario = service.buscarPorId(id);
 
-        return ComentarioMapper.toDTO(comentario);
+        return ResponseEntity.ok(ComentarioMapper.toDTO(comentario));
     }
 
     @PostMapping
-    public ComentarioDTO cadastrar(@RequestBody ComentarioDTO comentarioDTO) {
+    public ResponseEntity<ComentarioDTO> cadastrar(
+            @Valid @RequestBody ComentarioDTO comentarioDTO
+    ) {
         Comentario comentario = ComentarioMapper.toModel(comentarioDTO);
 
         Comentario comentarioCadastrado = service.cadastrar(comentario);
 
-        return ComentarioMapper.toDTO(comentarioCadastrado);
+        ComentarioDTO resposta = ComentarioMapper.toDTO(comentarioCadastrado);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(resposta.id())
+                .toUri();
+
+        return ResponseEntity
+                .created(location)
+                .body(resposta);
     }
 
     @PutMapping("/{id}")
-    public ComentarioDTO atualizar(
+    public ResponseEntity<ComentarioDTO> atualizar(
             @PathVariable Long id,
-            @RequestBody ComentarioDTO comentarioDTO
+            @Valid @RequestBody ComentarioDTO comentarioDTO
     ) {
         Comentario comentario = ComentarioMapper.toModel(comentarioDTO);
 
         Comentario comentarioAtualizado = service.atualizar(id, comentario);
 
-        return ComentarioMapper.toDTO(comentarioAtualizado);
+        return ResponseEntity.ok(ComentarioMapper.toDTO(comentarioAtualizado));
     }
 
     @DeleteMapping("/{id}")
-    public boolean deletar(@PathVariable Long id) {
-        return service.deletar(id);
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        service.deletar(id);
+
+        return ResponseEntity.noContent().build();
     }
 }

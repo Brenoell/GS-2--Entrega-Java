@@ -4,11 +4,14 @@ package com.fiap.minicity.controller;
 import com.fiap.minicity.dto.DistritoDTO;
 import com.fiap.minicity.service.DistritoService;
 
+import jakarta.validation.Valid;
+
+import java.net.URI;
 import java.util.List;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
 @RequestMapping("/distritos")
@@ -34,17 +37,25 @@ public class DistritoController {
 
     @PostMapping
     public ResponseEntity<DistritoDTO> cadastrar(
-            @RequestBody DistritoDTO distritoDTO
+            @Valid @RequestBody DistritoDTO distritoDTO
     ) {
         DistritoDTO distrito = service.cadastrar(distritoDTO);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(distrito);
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(distrito.id())
+                .toUri();
+
+        return ResponseEntity
+                .created(location)
+                .body(distrito);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<DistritoDTO> atualizar(
             @PathVariable Long id,
-            @RequestBody DistritoDTO distritoDTO
+            @Valid @RequestBody DistritoDTO distritoDTO
     ) {
         return ResponseEntity.ok(service.atualizar(id, distritoDTO));
     }

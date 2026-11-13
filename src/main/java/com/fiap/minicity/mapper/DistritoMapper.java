@@ -3,8 +3,11 @@ package com.fiap.minicity.mapper;
 
 import com.fiap.minicity.dto.DistritoDTO;
 import com.fiap.minicity.models.Distrito;
+import org.modelmapper.ModelMapper;
 
 public class DistritoMapper {
+
+    private static final ModelMapper mapper = new ModelMapper();
 
     // Converte Model para DTO
     public static DistritoDTO toDTO(Distrito distrito) {
@@ -13,13 +16,7 @@ public class DistritoMapper {
             return null;
         }
 
-        return new DistritoDTO(
-                distrito.getId(),
-                distrito.getNomeDistrito(),
-                distrito.getZona(),
-                distrito.getLatitude(),
-                distrito.getLongitude()
-        );
+        return mapper.map(distrito, DistritoDTO.class);
     }
 
     // Converte DTO para Model
@@ -29,12 +26,6 @@ public class DistritoMapper {
             return null;
         }
 
-        return new Distrito(
-                distritoDTO.id(),
-                distritoDTO.nomeDistrito(),
-                distritoDTO.zona(),
-                distritoDTO.latitude(),
-                distritoDTO.longitude()
-        );
+        return mapper.map(distritoDTO, Distrito.class);
     }
 }

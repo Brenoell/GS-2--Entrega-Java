@@ -3,8 +3,11 @@ package com.fiap.minicity.mapper;
 
 import com.fiap.minicity.dto.CategoriaOcorrenciaDTO;
 import com.fiap.minicity.models.CategoriaOcorrencia;
+import org.modelmapper.ModelMapper;
 
 public class CategoriaOcorrenciaMapper {
+
+    private static final ModelMapper mapper = new ModelMapper();
 
     // Converte Model para DTO
     public static CategoriaOcorrenciaDTO toDTO(CategoriaOcorrencia categoria) {
@@ -13,11 +16,7 @@ public class CategoriaOcorrenciaMapper {
             return null;
         }
 
-        return new CategoriaOcorrenciaDTO(
-                categoria.getId(),
-                categoria.getNomeOcorrencia(),
-                categoria.getDescTexto()
-        );
+        return mapper.map(categoria, CategoriaOcorrenciaDTO.class);
     }
 
     // Converte DTO para Model
@@ -27,10 +26,6 @@ public class CategoriaOcorrenciaMapper {
             return null;
         }
 
-        return new CategoriaOcorrencia(
-                categoriaDTO.id(),
-                categoriaDTO.nomeOcorrencia(),
-                categoriaDTO.descTexto()
-        );
+        return mapper.map(categoriaDTO, CategoriaOcorrencia.class);
     }
 }

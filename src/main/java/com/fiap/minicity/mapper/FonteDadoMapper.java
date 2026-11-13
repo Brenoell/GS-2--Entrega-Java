@@ -3,8 +3,11 @@ package com.fiap.minicity.mapper;
 
 import com.fiap.minicity.dto.FonteDadoDTO;
 import com.fiap.minicity.models.FonteDado;
+import org.modelmapper.ModelMapper;
 
 public class FonteDadoMapper {
+
+    private static final ModelMapper mapper = new ModelMapper();
 
     // Converte Model para DTO
     public static FonteDadoDTO toDTO(FonteDado fonte) {
@@ -13,12 +16,7 @@ public class FonteDadoMapper {
             return null;
         }
 
-        return new FonteDadoDTO(
-                fonte.getId(),
-                fonte.getNomeFonte(),
-                fonte.getTipo(),
-                fonte.getUrl()
-        );
+        return mapper.map(fonte, FonteDadoDTO.class);
     }
 
     // Converte DTO para Model
@@ -28,11 +26,6 @@ public class FonteDadoMapper {
             return null;
         }
 
-        return new FonteDado(
-                fonteDTO.id(),
-                fonteDTO.nomeFonte(),
-                fonteDTO.tipo(),
-                fonteDTO.url()
-        );
+        return mapper.map(fonteDTO, FonteDado.class);
     }
 }

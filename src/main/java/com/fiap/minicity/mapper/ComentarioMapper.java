@@ -3,8 +3,11 @@ package com.fiap.minicity.mapper;
 
 import com.fiap.minicity.dto.ComentarioDTO;
 import com.fiap.minicity.models.Comentario;
+import org.modelmapper.ModelMapper;
 
 public class ComentarioMapper {
+
+    private static final ModelMapper mapper = new ModelMapper();
 
     // Converte Model para DTO
     public static ComentarioDTO toDTO(Comentario comentario) {
@@ -13,10 +16,12 @@ public class ComentarioMapper {
             return null;
         }
 
+        ComentarioDTO dto = mapper.map(comentario, ComentarioDTO.class);
+
         return new ComentarioDTO(
-                comentario.getId(),
-                comentario.getDescConteudo(),
-                comentario.getDataPublicacao(),
+                dto.id(),
+                dto.descConteudo(),
+                dto.dataPublicacao(),
 
                 PessoaMapper.toDTO(comentario.getPessoa()),
                 DistritoMapper.toDTO(comentario.getDistrito()),
@@ -31,15 +36,13 @@ public class ComentarioMapper {
             return null;
         }
 
-        return new Comentario(
-                comentarioDTO.id(),
-                comentarioDTO.descConteudo(),
-                comentarioDTO.dataPublicacao(),
+        Comentario comentario = mapper.map(comentarioDTO, Comentario.class);
 
-                PessoaMapper.toModel(comentarioDTO.pessoa()),
-                DistritoMapper.toModel(comentarioDTO.distrito()),
-                OcorrenciaMapper.toModel(comentarioDTO.ocorrencia())
-        );
+        // Os relacionamentos serão preenchidos pelo Service
+        comentario.setPessoa(null);
+        comentario.setDistrito(null);
+        comentario.setOcorrencia(null);
+
+        return comentario;
     }
 }
-

@@ -52,6 +52,52 @@ public class DistritoDAO {
         }
     }
 
+    // Verifica se já existe um distrito com esse nome
+    public boolean existePorNome(String nome) {
+        String sql = "SELECT COUNT(*) FROM DISTRITO " +
+                "WHERE UPPER(TRIM(nm_distrito)) = UPPER(TRIM(?))";
+
+        try (Connection c = ConnectionFactory.obterConexao();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, nome);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getInt(1) > 0;
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "Erro ao verificar nome do distrito.", e
+            );
+        }
+    }
+
+    // Verifica se outro distrito já utiliza esse nome
+    public boolean existePorNomeEmOutroDistrito(String nome, Long id) {
+        String sql = "SELECT COUNT(*) FROM DISTRITO " +
+                "WHERE UPPER(TRIM(nm_distrito)) = UPPER(TRIM(?)) " +
+                "AND id_distrito <> ?";
+
+        try (Connection c = ConnectionFactory.obterConexao();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, nome);
+            ps.setLong(2, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getInt(1) > 0;
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "Erro ao verificar nome do distrito.", e
+            );
+        }
+    }
+
     public Distrito cadastrar(Distrito d) {
         String sql = "INSERT INTO DISTRITO " +
                 "(nm_distrito, ds_zona, ds_latitude, ds_longitude) " +

@@ -1,9 +1,7 @@
 
 package com.fiap.minicity.dto;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
-
 import java.time.LocalDateTime;
 
 public record OcorrenciaDTO(
@@ -48,19 +46,13 @@ public record OcorrenciaDTO(
         LocalDateTime dataAtualizacao,
 
         @NotNull(message = "O distrito é obrigatório")
-        @Valid
         DistritoDTO distrito,
 
         @NotNull(message = "A categoria é obrigatória")
-        @Valid
         CategoriaOcorrenciaDTO categoria,
 
-        @NotNull(message = "A fonte de dados é obrigatória")
-        @Valid
         FonteDadoDTO fonte,
 
-        @NotNull(message = "A pessoa responsável é obrigatória")
-        @Valid
         PessoaDTO pessoa,
 
         @Size(max = 100, message = "O ID externo deve ter no máximo 100 caracteres")

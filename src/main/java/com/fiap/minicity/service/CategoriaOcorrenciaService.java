@@ -3,6 +3,7 @@ package com.fiap.minicity.service;
 
 import com.fiap.minicity.dao.CategoriaOcorrenciaDAO;
 import com.fiap.minicity.dto.CategoriaOcorrenciaDTO;
+import com.fiap.minicity.exception.ConflitoException;
 import com.fiap.minicity.exception.RecursoNaoEncontradoException;
 import com.fiap.minicity.exception.RegraNegocioException;
 import com.fiap.minicity.mapper.CategoriaOcorrenciaMapper;
@@ -48,6 +49,13 @@ public class CategoriaOcorrenciaService {
 
         validarCategoria(objeto);
 
+        // Verifica se já existe uma categoria com esse nome
+        if (dao.existePorNome(objeto.nomeOcorrencia())) {
+            throw new ConflitoException(
+                    "Já existe uma categoria com esse nome."
+            );
+        }
+
         CategoriaOcorrencia categoria = CategoriaOcorrenciaMapper.toModel(objeto);
 
         CategoriaOcorrencia cadastrada = dao.cadastrar(categoria);
@@ -59,6 +67,13 @@ public class CategoriaOcorrenciaService {
 
         validarId(id);
         validarCategoria(objeto);
+
+        // Verifica se outra categoria já utiliza esse nome
+        if (dao.existePorNomeEmOutraCategoria(objeto.nomeOcorrencia(), id)) {
+            throw new ConflitoException(
+                    "Já existe outra categoria com esse nome."
+            );
+        }
 
         CategoriaOcorrencia categoria = CategoriaOcorrenciaMapper.toModel(objeto);
 

@@ -14,13 +14,15 @@ public record DistritoDTO(
         @NotBlank(message = "A zona é obrigatória")
         String zona,
 
+        @NotNull(message = "A latitude é obrigatória")
         @DecimalMin(value = "-90.0", message = "A latitude mínima é -90")
         @DecimalMax(value = "90.0", message = "A latitude máxima é 90")
-        double latitude,
+        Double latitude,
 
+        @NotNull(message = "A longitude é obrigatória")
         @DecimalMin(value = "-180.0", message = "A longitude mínima é -180")
         @DecimalMax(value = "180.0", message = "A longitude máxima é 180")
-        double longitude
+        Double longitude
 
 ) {
 }

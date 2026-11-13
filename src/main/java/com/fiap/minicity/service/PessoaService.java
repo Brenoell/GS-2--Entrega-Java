@@ -4,6 +4,7 @@ package com.fiap.minicity.service;
 import com.fiap.minicity.dao.PessoaDAO;
 import com.fiap.minicity.dto.LoginDTO;
 import com.fiap.minicity.dto.PessoaDTO;
+import com.fiap.minicity.exception.ConflitoException;
 import com.fiap.minicity.exception.CredenciaisInvalidasException;
 import com.fiap.minicity.exception.RecursoNaoEncontradoException;
 import com.fiap.minicity.exception.RegraNegocioException;
@@ -69,9 +70,14 @@ public class PessoaService {
             );
         }
 
+        if (dao.existePorEmail(pessoaDTO.email())) {
+            throw new ConflitoException(
+                    "Já existe uma pessoa cadastrada com esse e-mail."
+            );
+        }
+
         Pessoa pessoa = PessoaMapper.toModel(pessoaDTO);
 
-        // Criptografa a senha antes de salvar no banco.
         pessoa.setSenha(passwordEncoder.encode(pessoaDTO.senha()));
 
         Pessoa pessoaCadastrada = dao.cadastrar(pessoa);
@@ -90,7 +96,26 @@ public class PessoaService {
             );
         }
 
+        // Busca a pessoa atual para preservar a senha.
+        Pessoa pessoaExistente = dao.buscarPorId(id);
+
+        if (pessoaExistente == null) {
+            throw new RecursoNaoEncontradoException(
+                    "Pessoa não encontrada."
+            );
+        }
+
+        // Verifica se outra pessoa já utiliza esse e-mail.
+        if (dao.existePorEmailEmOutraPessoa(pessoaDTO.email(), id)) {
+            throw new ConflitoException(
+                    "Esse e-mail já está sendo utilizado por outra pessoa."
+            );
+        }
+
         Pessoa pessoa = PessoaMapper.toModel(pessoaDTO);
+
+        // Mantém a senha já cadastrada.
+        pessoa.setSenha(pessoaExistente.getSenha());
 
         Pessoa pessoaAtualizada = dao.atualizar(id, pessoa);
 

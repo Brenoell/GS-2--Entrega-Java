@@ -6,65 +6,67 @@ import com.fiap.minicity.models.Ocorrencia;
 
 public class OcorrenciaMapper {
 
-    // Converte Model para DTO
-    public static OcorrenciaDTO toDTO(Ocorrencia ocorrencia) {
+        // Converte Model para DTO
+        public static OcorrenciaDTO toDTO(Ocorrencia ocorrencia) {
 
-        if (ocorrencia == null) {
-            return null;
+                if (ocorrencia == null) {
+                        return null;
+                }
+
+                return new OcorrenciaDTO(
+                        ocorrencia.getId(),
+                        ocorrencia.getNomeTitulo(),
+                        ocorrencia.getDescOcorrencia(),
+                        ocorrencia.getGravidade(),
+                        ocorrencia.getOrigem(),
+                        ocorrencia.getStatus(),
+                        ocorrencia.getLatitude(),
+                        ocorrencia.getLongitude(),
+                        ocorrencia.getDataOcorrencia(),
+                        ocorrencia.getDataPublicacao(),
+                        ocorrencia.getDataAtualizacao(),
+
+                        DistritoMapper.toDTO(ocorrencia.getDistrito()),
+                        CategoriaOcorrenciaMapper.toDTO(ocorrencia.getCategoria()),
+                        FonteDadoMapper.toDTO(ocorrencia.getFonte()),
+                        PessoaMapper.toDTO(ocorrencia.getPessoa()),
+
+                        ocorrencia.getIdExterno()
+                );
         }
 
-        return new OcorrenciaDTO(
-                ocorrencia.getId(),
-                ocorrencia.getNomeTitulo(),
-                ocorrencia.getDescOcorrencia(),
-                ocorrencia.getGravidade(),
-                ocorrencia.getOrigem(),
-                ocorrencia.getStatus(),
-                ocorrencia.getLatitude(),
-                ocorrencia.getLongitude(),
-                ocorrencia.getDataOcorrencia(),
-                ocorrencia.getDataPublicacao(),
-                ocorrencia.getDataAtualizacao(),
 
-                DistritoMapper.toDTO(ocorrencia.getDistrito()),
-                CategoriaOcorrenciaMapper.toDTO(ocorrencia.getCategoria()),
-                FonteDadoMapper.toDTO(ocorrencia.getFonte()),
-                PessoaMapper.toDTO(ocorrencia.getPessoa()),
+        public static Ocorrencia toModel(OcorrenciaDTO dto) {
 
-                ocorrencia.getIdExterno()
-        );
-    }
+                if (dto == null) {
+                        return null;
+                }
 
-    // Converte DTO para Model
-    public static Ocorrencia toModel(OcorrenciaDTO dto) {
+                Ocorrencia ocorrencia = new Ocorrencia();
 
-        if (dto == null) {
-            return null;
+                ocorrencia.setId(dto.id());
+                ocorrencia.setNomeTitulo(dto.nomeTitulo());
+                ocorrencia.setDescOcorrencia(dto.descOcorrencia());
+                ocorrencia.setGravidade(dto.gravidade());
+                ocorrencia.setOrigem(dto.origem());
+                ocorrencia.setStatus(dto.status());
+
+                ocorrencia.setLatitude(dto.latitude());
+                ocorrencia.setLongitude(dto.longitude());
+
+                ocorrencia.setDataOcorrencia(dto.dataOcorrencia());
+                ocorrencia.setDataPublicacao(dto.dataPublicacao());
+                ocorrencia.setDataAtualizacao(dto.dataAtualizacao());
+
+                // Os relacionamentos serão preenchidos pelo Service
+                ocorrencia.setDistrito(null);
+                ocorrencia.setCategoria(null);
+                ocorrencia.setFonte(null);
+                ocorrencia.setPessoa(null);
+
+                ocorrencia.setIdExterno(dto.idExterno());
+
+                return ocorrencia;
         }
 
-        Ocorrencia ocorrencia = new Ocorrencia();
-
-        ocorrencia.setId(dto.id());
-        ocorrencia.setNomeTitulo(dto.nomeTitulo());
-        ocorrencia.setDescOcorrencia(dto.descOcorrencia());
-        ocorrencia.setGravidade(dto.gravidade());
-        ocorrencia.setOrigem(dto.origem());
-        ocorrencia.setStatus(dto.status());
-
-        ocorrencia.setLatitude(dto.latitude());
-        ocorrencia.setLongitude(dto.longitude());
-
-        ocorrencia.setDataOcorrencia(dto.dataOcorrencia());
-        ocorrencia.setDataPublicacao(dto.dataPublicacao());
-        ocorrencia.setDataAtualizacao(dto.dataAtualizacao());
-
-        ocorrencia.setDistrito(DistritoMapper.toModel(dto.distrito()));
-        ocorrencia.setCategoria(CategoriaOcorrenciaMapper.toModel(dto.categoria()));
-        ocorrencia.setFonte(FonteDadoMapper.toModel(dto.fonte()));
-        ocorrencia.setPessoa(PessoaMapper.toModel(dto.pessoa()));
-
-        ocorrencia.setIdExterno(dto.idExterno());
-
-        return ocorrencia;
-    }
 }

@@ -1,6 +1,7 @@
 
 package com.fiap.minicity.dao;
 
+import com.fiap.minicity.exception.ConflitoException;
 import com.fiap.minicity.models.Pessoa;
 import org.springframework.stereotype.Repository;
 
@@ -15,7 +16,7 @@ public class PessoaDAO {
         List<Pessoa> lista = new ArrayList<>();
 
         String sql = """
-                SELECT id_pessoa, nm_nome, ds_email, ds_perfil, dt_cadastro
+                SELECT id_pessoa, nm_pessoa, ds_email, ds_perfil, dt_cadastro
                 FROM PESSOA
                 ORDER BY id_pessoa
                 """;
@@ -37,7 +38,7 @@ public class PessoaDAO {
 
     public Pessoa buscarPorId(Long id) {
         String sql = """
-                SELECT id_pessoa, nm_nome, ds_email, ds_perfil, dt_cadastro
+                SELECT id_pessoa, nm_pessoa, ds_email, ds_perfil, dt_cadastro
                 FROM PESSOA
                 WHERE id_pessoa = ?
                 """;
@@ -60,7 +61,7 @@ public class PessoaDAO {
     // Será utilizado no login.
     public Pessoa buscarPorEmail(String email) {
         String sql = """
-                SELECT id_pessoa, nm_nome, ds_senha, ds_email, ds_perfil, dt_cadastro
+                SELECT id_pessoa, nm_pessoa, ds_senha, ds_email, ds_perfil, dt_cadastro
                 FROM PESSOA
                 WHERE ds_email = ?
                 """;
@@ -82,7 +83,7 @@ public class PessoaDAO {
     public Pessoa cadastrar(Pessoa x) {
         String sql = """
                 INSERT INTO PESSOA (
-                    nm_nome, ds_senha, ds_email, ds_perfil
+                    nm_pessoa, ds_senha, ds_email, ds_perfil
                 ) VALUES (?, ?, ?, ?)
                 """;
 
@@ -120,7 +121,7 @@ public class PessoaDAO {
     public Pessoa atualizar(Long id, Pessoa x) {
         String sql = """
                 UPDATE PESSOA
-                SET nm_nome = ?, ds_email = ?, ds_perfil = ?
+                SET nm_pessoa = ?, ds_email = ?, ds_perfil = ?
                 WHERE id_pessoa = ?
                 """;
 
@@ -156,8 +157,65 @@ public class PessoaDAO {
 
             return ps.executeUpdate() > 0;
 
+        }  catch (SQLException e) {
+
+        if (e.getErrorCode() == 2292) {
+            throw new ConflitoException(
+                    "Não é possível excluir esta pessoa, pois ela está vinculada a uma ou mais ocorrências."
+            );
+        }
+
+        throw new RuntimeException("Erro ao deletar pessoa.", e);
+    }
+    }
+
+    // Verifica se o e-mail já está cadastrado
+    public boolean existePorEmail(String email) {
+
+        String sql = """
+                SELECT COUNT(*)
+                FROM PESSOA
+                WHERE UPPER(TRIM(ds_email)) = UPPER(TRIM(?))
+                """;
+
+        try (Connection c = ConnectionFactory.obterConexao();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, email);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getInt(1) > 0;
+            }
+
         } catch (SQLException e) {
-            throw new RuntimeException("Erro ao deletar pessoa.", e);
+            throw new RuntimeException("Erro ao verificar e-mail.", e);
+        }
+    }
+
+    // Verifica se outra pessoa já utiliza esse e-mail
+    public boolean existePorEmailEmOutraPessoa(String email, Long id) {
+
+        String sql = """
+                SELECT COUNT(*)
+                FROM PESSOA
+                WHERE UPPER(TRIM(ds_email)) = UPPER(TRIM(?))
+                AND id_pessoa <> ?
+                """;
+
+        try (Connection c = ConnectionFactory.obterConexao();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, email);
+            ps.setLong(2, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getInt(1) > 0;
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao verificar e-mail.", e);
         }
     }
 
@@ -166,7 +224,7 @@ public class PessoaDAO {
         Pessoa pessoa = new Pessoa();
 
         pessoa.setId(rs.getLong("id_pessoa"));
-        pessoa.setNome(rs.getString("nm_nome"));
+        pessoa.setNome(rs.getString("nm_pessoa"));
         pessoa.setEmail(rs.getString("ds_email"));
         pessoa.setPerfil(rs.getString("ds_perfil"));
         pessoa.setDataCadastro(DAOUtil.data(rs, "dt_cadastro"));

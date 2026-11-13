@@ -50,6 +50,52 @@ public class FonteDadoDAO {
         }
     }
 
+    // Verifica se já existe uma fonte com esse nome
+    public boolean existePorNome(String nome) {
+        String sql = "SELECT COUNT(*) FROM FONTE_DADO " +
+                "WHERE UPPER(TRIM(nm_fonte)) = UPPER(TRIM(?))";
+
+        try (Connection c = ConnectionFactory.obterConexao();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, nome);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getInt(1) > 0;
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "Erro ao verificar nome da fonte.", e
+            );
+        }
+    }
+
+    // Verifica se outra fonte já utiliza esse nome
+    public boolean existePorNomeEmOutraFonte(String nome, Long id) {
+        String sql = "SELECT COUNT(*) FROM FONTE_DADO " +
+                "WHERE UPPER(TRIM(nm_fonte)) = UPPER(TRIM(?)) " +
+                "AND id_fonte <> ?";
+
+        try (Connection c = ConnectionFactory.obterConexao();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, nome);
+            ps.setLong(2, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getInt(1) > 0;
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "Erro ao verificar nome da fonte.", e
+            );
+        }
+    }
+
     public FonteDado cadastrar(FonteDado x) {
         String sql = "INSERT INTO FONTE_DADO(nm_fonte, ds_tipo, ds_url) " +
                 "VALUES (?, ?, ?)";

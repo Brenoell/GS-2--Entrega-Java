@@ -132,6 +132,54 @@ public class CategoriaOcorrenciaDAO {
         }
     }
 
+    public boolean existePorNome(String nome) {
+
+        String sql = """
+            SELECT COUNT(*)
+            FROM CATEGORIA_OCORRENCIA
+            WHERE UPPER(TRIM(nm_ocorrencia)) = UPPER(TRIM(?))
+            """;
+
+        try (Connection c = ConnectionFactory.obterConexao();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, nome);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getInt(1) > 0;
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao verificar categoria.", e);
+        }
+    }
+
+    public boolean existePorNomeEmOutraCategoria(String nome, Long id) {
+
+        String sql = """
+            SELECT COUNT(*)
+            FROM CATEGORIA_OCORRENCIA
+            WHERE UPPER(TRIM(nm_ocorrencia)) = UPPER(TRIM(?))
+            AND id_categoria <> ?
+            """;
+
+        try (Connection c = ConnectionFactory.obterConexao();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, nome);
+            ps.setLong(2, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                return rs.getInt(1) > 0;
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao verificar categoria.", e);
+        }
+    }
+
     private void preencher(PreparedStatement ps, CategoriaOcorrencia x)
             throws SQLException {
 

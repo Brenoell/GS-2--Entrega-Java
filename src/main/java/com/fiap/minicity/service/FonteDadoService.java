@@ -3,6 +3,7 @@ package com.fiap.minicity.service;
 
 import com.fiap.minicity.dao.FonteDadoDAO;
 import com.fiap.minicity.dto.FonteDadoDTO;
+import com.fiap.minicity.exception.ConflitoException;
 import com.fiap.minicity.exception.RecursoNaoEncontradoException;
 import com.fiap.minicity.exception.RegraNegocioException;
 import com.fiap.minicity.mapper.FonteDadoMapper;
@@ -45,6 +46,13 @@ public class FonteDadoService {
     public FonteDadoDTO cadastrar(FonteDadoDTO fonteDTO) {
         validarFonte(fonteDTO);
 
+        // Verifica se já existe uma fonte com esse nome
+        if (dao.existePorNome(fonteDTO.nomeFonte())) {
+            throw new ConflitoException(
+                    "Já existe uma fonte de dado cadastrada com esse nome."
+            );
+        }
+
         FonteDado fonte = FonteDadoMapper.toModel(fonteDTO);
         fonte.setId(null);
 
@@ -56,6 +64,20 @@ public class FonteDadoService {
     public FonteDadoDTO atualizar(Long id, FonteDadoDTO fonteDTO) {
         validarId(id);
         validarFonte(fonteDTO);
+
+        // Verifica se a fonte existe
+        if (dao.buscarPorId(id) == null) {
+            throw new RecursoNaoEncontradoException(
+                    "Fonte de dado não encontrada."
+            );
+        }
+
+        // Verifica se outra fonte já utiliza esse nome
+        if (dao.existePorNomeEmOutraFonte(fonteDTO.nomeFonte(), id)) {
+            throw new ConflitoException(
+                    "Esse nome já está sendo utilizado por outra fonte."
+            );
+        }
 
         FonteDado fonte = FonteDadoMapper.toModel(fonteDTO);
         FonteDado fonteAtualizada = dao.atualizar(id, fonte);

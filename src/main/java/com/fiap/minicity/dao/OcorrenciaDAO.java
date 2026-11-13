@@ -79,9 +79,14 @@ public class OcorrenciaDAO {
             ps.executeUpdate();
 
             try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) {
-                    x.setId(rs.getLong(1));
+
+                if (!rs.next()) {
+                    throw new SQLException(
+                            "Não foi possível recuperar o ID da ocorrência cadastrada."
+                    );
                 }
+
+                x.setId(rs.getLong(1));
             }
 
             return buscarPorId(x.getId());

@@ -3,6 +3,7 @@ package com.fiap.minicity.service;
 
 import com.fiap.minicity.dao.DistritoDAO;
 import com.fiap.minicity.dto.DistritoDTO;
+import com.fiap.minicity.exception.ConflitoException;
 import com.fiap.minicity.exception.RecursoNaoEncontradoException;
 import com.fiap.minicity.exception.RegraNegocioException;
 import com.fiap.minicity.mapper.DistritoMapper;
@@ -45,9 +46,16 @@ public class DistritoService {
     public DistritoDTO cadastrar(DistritoDTO distritoDTO) {
         validarDistrito(distritoDTO);
 
+        // Verifica se já existe um distrito com esse nome
+        if (dao.existePorNome(distritoDTO.nomeDistrito())) {
+            throw new ConflitoException(
+                    "Já existe um distrito cadastrado com esse nome."
+            );
+        }
+
         Distrito distrito = DistritoMapper.toModel(distritoDTO);
 
-        // O ID é gerado pelo banco.
+        // O ID é gerado pelo banco
         distrito.setId(null);
 
         Distrito distritoCadastrado = dao.cadastrar(distrito);
@@ -58,6 +66,21 @@ public class DistritoService {
     public DistritoDTO atualizar(Long id, DistritoDTO distritoDTO) {
         validarId(id);
         validarDistrito(distritoDTO);
+
+        // Verifica se o distrito existe
+        if (dao.buscarPorId(id) == null) {
+            throw new RecursoNaoEncontradoException(
+                    "Distrito não encontrado."
+            );
+        }
+
+        // Verifica se outro distrito já utiliza esse nome
+        if (dao.existePorNomeEmOutroDistrito(
+                distritoDTO.nomeDistrito(), id)) {
+            throw new ConflitoException(
+                    "Esse nome já está sendo utilizado por outro distrito."
+            );
+        }
 
         Distrito distrito = DistritoMapper.toModel(distritoDTO);
 

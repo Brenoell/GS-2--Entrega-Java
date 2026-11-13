@@ -112,11 +112,14 @@ public class ComentarioService {
             );
         }
 
-        if (objeto.getDistrito() == null ||
-                objeto.getDistrito().getId() == null ||
-                objeto.getDistrito().getId() <= 0) {
+        // Distrito e ocorrência são opcionais.
+        // Se forem informados, seus IDs precisam ser válidos.
+
+        if (objeto.getDistrito() != null &&
+                (objeto.getDistrito().getId() == null ||
+                        objeto.getDistrito().getId() <= 0)) {
             throw new RegraNegocioException(
-                    "É necessário informar um distrito válido."
+                    "Distrito inválido."
             );
         }
 

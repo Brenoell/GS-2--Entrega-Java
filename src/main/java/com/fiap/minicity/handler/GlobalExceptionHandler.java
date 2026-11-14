@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
@@ -25,6 +26,14 @@ public class GlobalExceptionHandler {
             RecursoNaoEncontradoException e
     ) {
         return criarResposta(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    // Trata URLs que não existem na API, como a raiz "/"
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErroDTO> tratarRecursoInexistente(
+            NoResourceFoundException e
+    ) {
+        return criarResposta(HttpStatus.NOT_FOUND, "Endpoint não encontrado.");
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

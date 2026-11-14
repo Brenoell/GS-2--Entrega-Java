@@ -1,4 +1,3 @@
-
 package com.fiap.minicity.dao;
 
 import com.fiap.minicity.models.Comentario;
@@ -61,6 +60,62 @@ public class ComentarioDAO {
 
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao listar comentários.", e);
+        }
+    }
+
+    // Lista os comentários de uma ocorrência (rota aninhada do 1:N)
+    public List<Comentario> listarPorOcorrencia(Long idOcorrencia) {
+        List<Comentario> lista = new ArrayList<>();
+
+        String sql = """
+                SELECT
+                    c.id_comentario,
+                    c.ds_conteudo,
+                    c.dt_publicacao,
+
+                    p.id_pessoa,
+                    p.nm_nome,
+                    p.ds_email,
+                    p.ds_perfil,
+                    p.dt_cadastro,
+
+                    d.id_distrito,
+                    d.nm_distrito,
+                    d.ds_zona,
+                    d.ds_latitude,
+                    d.ds_longitude,
+
+                    c.id_ocorrencia
+
+                FROM COMENTARIO c
+
+                JOIN PESSOA p
+                    ON c.id_pessoa = p.id_pessoa
+
+                JOIN DISTRITO d
+                    ON c.id_distrito = d.id_distrito
+
+                WHERE c.id_ocorrencia = ?
+
+                ORDER BY c.dt_publicacao DESC
+                """;
+
+        try (Connection c = ConnectionFactory.obterConexao();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setLong(1, idOcorrencia);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapear(rs));
+                }
+            }
+
+            return lista;
+
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "Erro ao listar comentários da ocorrência.", e);
         }
     }
 

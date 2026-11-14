@@ -1,10 +1,11 @@
-
 package com.fiap.minicity.service;
 
 import com.fiap.minicity.dao.ComentarioDAO;
+import com.fiap.minicity.dao.OcorrenciaDAO;
 import com.fiap.minicity.exception.RecursoNaoEncontradoException;
 import com.fiap.minicity.exception.RegraNegocioException;
 import com.fiap.minicity.models.Comentario;
+import com.fiap.minicity.models.Ocorrencia;
 
 import org.springframework.stereotype.Service;
 
@@ -14,9 +15,11 @@ import java.util.List;
 public class ComentarioService {
 
     private final ComentarioDAO dao;
+    private final OcorrenciaDAO ocorrenciaDAO;
 
-    public ComentarioService(ComentarioDAO dao) {
+    public ComentarioService(ComentarioDAO dao, OcorrenciaDAO ocorrenciaDAO) {
         this.dao = dao;
+        this.ocorrenciaDAO = ocorrenciaDAO;
     }
 
     public List<Comentario> listar() {
@@ -74,6 +77,37 @@ public class ComentarioService {
         }
 
         return true;
+    }
+
+    // ROTAS ANINHADAS: /ocorrencias/{id}/comentarios
+
+    public List<Comentario> listarPorOcorrencia(Long idOcorrencia) {
+
+        validarId(idOcorrencia);
+        verificarOcorrenciaExiste(idOcorrencia);
+
+        return dao.listarPorOcorrencia(idOcorrencia);
+    }
+
+    public Comentario cadastrarNaOcorrencia(Long idOcorrencia, Comentario comentario) {
+
+        validarId(idOcorrencia);
+        verificarOcorrenciaExiste(idOcorrencia);
+
+        Ocorrencia ocorrencia = new Ocorrencia();
+        ocorrencia.setId(idOcorrencia);
+        comentario.setOcorrencia(ocorrencia);
+
+        return cadastrar(comentario);
+    }
+
+    private void verificarOcorrenciaExiste(Long idOcorrencia) {
+
+        if (ocorrenciaDAO.buscarPorId(idOcorrencia) == null) {
+            throw new RecursoNaoEncontradoException(
+                    "Ocorrência não encontrada."
+            );
+        }
     }
 
     private void validarId(Long id) {

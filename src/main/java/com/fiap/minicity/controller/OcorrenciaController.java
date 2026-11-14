@@ -1,7 +1,10 @@
-
 package com.fiap.minicity.controller;
 
+import com.fiap.minicity.dto.ComentarioDTO;
 import com.fiap.minicity.dto.OcorrenciaDTO;
+import com.fiap.minicity.mapper.ComentarioMapper;
+import com.fiap.minicity.models.Comentario;
+import com.fiap.minicity.service.ComentarioService;
 import com.fiap.minicity.service.OcorrenciaService;
 
 import jakarta.validation.Valid;
@@ -18,9 +21,12 @@ import java.util.List;
 public class OcorrenciaController {
 
     private final OcorrenciaService service;
+    private final ComentarioService comentarioService;
 
-    public OcorrenciaController(OcorrenciaService service) {
+    public OcorrenciaController(OcorrenciaService service,
+                                ComentarioService comentarioService) {
         this.service = service;
+        this.comentarioService = comentarioService;
     }
 
     @GetMapping
@@ -65,5 +71,40 @@ public class OcorrenciaController {
         service.deletar(id);
 
         return ResponseEntity.noContent().build();
+    }
+
+    // ROTAS ANINHADAS (1:N): /ocorrencias/{id}/comentarios
+
+    @GetMapping("/{id}/comentarios")
+    public ResponseEntity<List<ComentarioDTO>> listarComentarios(
+            @PathVariable Long id
+    ) {
+        List<ComentarioDTO> lista = comentarioService.listarPorOcorrencia(id)
+                .stream()
+                .map(ComentarioMapper::toDTO)
+                .toList();
+
+        return ResponseEntity.ok(lista);
+    }
+
+    @PostMapping("/{id}/comentarios")
+    public ResponseEntity<ComentarioDTO> cadastrarComentario(
+            @PathVariable Long id,
+            @Valid @RequestBody ComentarioDTO dto
+    ) {
+        Comentario criado = comentarioService.cadastrarNaOcorrencia(
+                id, ComentarioMapper.toModel(dto));
+
+        ComentarioDTO resposta = ComentarioMapper.toDTO(criado);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentContextPath()
+                .path("/comentarios/{id}")
+                .buildAndExpand(resposta.id())
+                .toUri();
+
+        return ResponseEntity
+                .created(location)
+                .body(resposta);
     }
 }

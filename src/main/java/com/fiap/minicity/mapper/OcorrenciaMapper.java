@@ -1,60 +1,64 @@
-
 package com.fiap.minicity.mapper;
 
 import com.fiap.minicity.dto.OcorrenciaDTO;
 import com.fiap.minicity.models.Ocorrencia;
-import org.modelmapper.ModelMapper;
 
 public class OcorrenciaMapper {
 
-        private static final ModelMapper mapper = new ModelMapper();
-
         // Converte Model para DTO
-        public static OcorrenciaDTO toDTO(Ocorrencia ocorrencia) {
-
-                if (ocorrencia == null) {
+        public static OcorrenciaDTO toDTO(Ocorrencia o) {
+                if (o == null) {
                         return null;
                 }
 
-                OcorrenciaDTO dto = mapper.map(ocorrencia, OcorrenciaDTO.class);
-
                 return new OcorrenciaDTO(
-                        dto.id(),
-                        dto.nomeTitulo(),
-                        dto.descOcorrencia(),
-                        dto.gravidade(),
-                        dto.origem(),
-                        dto.status(),
-                        dto.latitude(),
-                        dto.longitude(),
-                        dto.dataOcorrencia(),
-                        dto.dataPublicacao(),
-                        dto.dataAtualizacao(),
+                        o.getId(),
+                        o.getNomeTitulo(),
+                        o.getDescOcorrencia(),
+                        o.getGravidade(),
+                        o.getOrigem(),
+                        o.getStatus(),
+                        o.getLatitude(),
+                        o.getLongitude(),
+                        o.getDataOcorrencia(),
+                        o.getDataPublicacao(),
+                        o.getDataAtualizacao(),
 
-                        DistritoMapper.toDTO(ocorrencia.getDistrito()),
-                        CategoriaOcorrenciaMapper.toDTO(ocorrencia.getCategoria()),
-                        FonteDadoMapper.toDTO(ocorrencia.getFonte()),
-                        PessoaMapper.toDTO(ocorrencia.getPessoa()),
+                        DistritoMapper.toDTO(o.getDistrito()),
+                        CategoriaOcorrenciaMapper.toDTO(o.getCategoria()),
+                        FonteDadoMapper.toDTO(o.getFonte()),
+                        PessoaMapper.toDTO(o.getPessoa()),
 
-                        dto.idExterno()
+                        o.getIdExterno()
                 );
         }
 
         // Converte DTO para Model
         public static Ocorrencia toModel(OcorrenciaDTO dto) {
-
                 if (dto == null) {
                         return null;
                 }
 
-                Ocorrencia ocorrencia = mapper.map(dto, Ocorrencia.class);
+                Ocorrencia o = new Ocorrencia();
+                o.setId(dto.id());
+                o.setNomeTitulo(dto.nomeTitulo());
+                o.setDescOcorrencia(dto.descOcorrencia());
+                o.setGravidade(dto.gravidade());
+                o.setOrigem(dto.origem());
+                o.setStatus(dto.status());
+                o.setLatitude(dto.latitude());
+                o.setLongitude(dto.longitude());
+                o.setDataOcorrencia(dto.dataOcorrencia());
+                o.setDataPublicacao(dto.dataPublicacao());
+                o.setDataAtualizacao(dto.dataAtualizacao());
+                o.setIdExterno(dto.idExterno());
 
                 // Os relacionamentos serão preenchidos pelo Service
-                ocorrencia.setDistrito(null);
-                ocorrencia.setCategoria(null);
-                ocorrencia.setFonte(null);
-                ocorrencia.setPessoa(null);
+                o.setDistrito(null);
+                o.setCategoria(null);
+                o.setFonte(null);
+                o.setPessoa(null);
 
-                return ocorrencia;
+                return o;
         }
 }

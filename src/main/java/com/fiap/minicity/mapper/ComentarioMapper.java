@@ -1,48 +1,43 @@
-
 package com.fiap.minicity.mapper;
 
 import com.fiap.minicity.dto.ComentarioDTO;
 import com.fiap.minicity.models.Comentario;
-import org.modelmapper.ModelMapper;
 
 public class ComentarioMapper {
 
-    private static final ModelMapper mapper = new ModelMapper();
-
     // Converte Model para DTO
-    public static ComentarioDTO toDTO(Comentario comentario) {
-
-        if (comentario == null) {
+    public static ComentarioDTO toDTO(Comentario c) {
+        if (c == null) {
             return null;
         }
 
-        ComentarioDTO dto = mapper.map(comentario, ComentarioDTO.class);
-
         return new ComentarioDTO(
-                dto.id(),
-                dto.descConteudo(),
-                dto.dataPublicacao(),
+                c.getId(),
+                c.getDescConteudo(),
+                c.getDataPublicacao(),
 
-                PessoaMapper.toDTO(comentario.getPessoa()),
-                DistritoMapper.toDTO(comentario.getDistrito()),
-                OcorrenciaMapper.toDTO(comentario.getOcorrencia())
+                PessoaMapper.toDTO(c.getPessoa()),
+                DistritoMapper.toDTO(c.getDistrito()),
+                OcorrenciaMapper.toDTO(c.getOcorrencia())
         );
     }
 
     // Converte DTO para Model
-    public static Comentario toModel(ComentarioDTO comentarioDTO) {
-
-        if (comentarioDTO == null) {
+    public static Comentario toModel(ComentarioDTO dto) {
+        if (dto == null) {
             return null;
         }
 
-        Comentario comentario = mapper.map(comentarioDTO, Comentario.class);
+        Comentario c = new Comentario();
+        c.setId(dto.id());
+        c.setDescConteudo(dto.descConteudo());
+        c.setDataPublicacao(dto.dataPublicacao());
 
         // Os relacionamentos serão preenchidos pelo Service
-        comentario.setPessoa(null);
-        comentario.setDistrito(null);
-        comentario.setOcorrencia(null);
+        c.setPessoa(null);
+        c.setDistrito(null);
+        c.setOcorrencia(null);
 
-        return comentario;
+        return c;
     }
 }

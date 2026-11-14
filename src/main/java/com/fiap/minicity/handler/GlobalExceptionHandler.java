@@ -1,4 +1,3 @@
-
 package com.fiap.minicity.handler;
 
 import com.fiap.minicity.dto.ErroDTO;
@@ -35,6 +34,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErroDTO> tratarErroGenerico(Exception e) {
+        System.out.println("ERRO: " + e.getMessage()
+                + " | CAUSA: " + (e.getCause() != null ? e.getCause().getMessage() : "nenhuma"));
         return criarResposta(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno do servidor.");
     }
 

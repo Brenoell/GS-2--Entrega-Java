@@ -18,7 +18,7 @@ public record PessoaDTO(
         @Email(message = "E-mail inválido")
         String email,
 
-        @NotBlank(message = "O perfil é obrigatório")
+
         String perfil,
 
         LocalDateTime dataCadastro

@@ -2,9 +2,7 @@
 package com.fiap.minicity.controller;
 
 import com.fiap.minicity.service.NewsService;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,11 +16,13 @@ public class NewsController {
         this.service = service;
     }
 
-    @GetMapping("/sao-paulo")
-    public ResponseEntity<JsonNode> buscarNoticias() {
+    @GetMapping(value = "/sao-paulo", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> buscarNoticias() {
 
-        return ResponseEntity.ok(
-                service.buscarNoticiasSaoPaulo()
-        );
+        String noticias = service.buscarNoticiasSaoPaulo();
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(noticias);
     }
 }

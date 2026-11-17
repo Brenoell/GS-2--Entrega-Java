@@ -17,7 +17,7 @@ public class Ocorrencia {
     private String nomeTitulo;
     private String descOcorrencia;
 
-    //a gravidade é medida de 1 a 10
+    //a gravidade é medida de 1 a 5
     private Integer gravidade;
     private String origem;
     private String status;

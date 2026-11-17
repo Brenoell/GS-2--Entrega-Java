@@ -30,6 +30,10 @@ public class OcorrenciaController {
     private final OcorrenciaService service;
     private final ComentarioService comentarioService;
 
+    /**
+     * Recebe os Services necessários para gerenciar
+     * ocorrências e comentários.
+     */
     public OcorrenciaController(
             OcorrenciaService service,
             ComentarioService comentarioService
@@ -38,11 +42,17 @@ public class OcorrenciaController {
         this.comentarioService = comentarioService;
     }
 
+    /**
+     * Lista todas as ocorrências cadastradas.
+     */
     @GetMapping
     public ResponseEntity<List<OcorrenciaDTO>> listar() {
         return ResponseEntity.ok(service.listar());
     }
 
+    /**
+     * Busca uma ocorrência pelo ID informado.
+     */
     @GetMapping("/{id}")
     public ResponseEntity<OcorrenciaDTO> buscarPorId(
             @PathVariable Long id
@@ -50,37 +60,46 @@ public class OcorrenciaController {
         return ResponseEntity.ok(service.buscarPorId(id));
     }
 
-    // CADASTRAR OCORRÊNCIA COMO CIDADÃO
+    /**
+     * Cadastra uma ocorrência vinculada à pessoa autenticada
+     * e retorna os dados da ocorrência criada.
+     */
     @PostMapping
     public ResponseEntity<OcorrenciaDTO> cadastrar(
             @Valid @RequestBody CriarOcorrenciaDTO ocorrenciaDTO,
             HttpSession session
     ) {
 
-        // Recupera o ID da pessoa que fez login
+        // Recupera o ID da pessoa que fez login.
         Long idPessoa = (Long) session.getAttribute("idPessoa");
 
+        // Impede o cadastro caso não exista uma pessoa autenticada.
         if (idPessoa == null) {
             throw new CredenciaisInvalidasException(
                     "Usuário não autenticado."
             );
         }
 
-        // Cadastra a ocorrência vinculada à pessoa logada
+        // Cadastra a ocorrência vinculada à pessoa logada.
         OcorrenciaDTO ocorrencia =
                 service.cadastrarComoCidadao(ocorrenciaDTO, idPessoa);
 
+        // Monta o endereço para consultar a ocorrência criada.
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(ocorrencia.id())
                 .toUri();
 
+        // Retorna HTTP 201 (Created) com os dados cadastrados.
         return ResponseEntity
                 .created(location)
                 .body(ocorrencia);
     }
 
+    /**
+     * Atualiza os dados de uma ocorrência pelo ID informado.
+     */
     @PutMapping("/{id}")
     public ResponseEntity<OcorrenciaDTO> atualizar(
             @PathVariable Long id,
@@ -91,6 +110,9 @@ public class OcorrenciaController {
         );
     }
 
+    /**
+     * Exclui uma ocorrência pelo ID informado.
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(
             @PathVariable Long id
@@ -100,8 +122,9 @@ public class OcorrenciaController {
         return ResponseEntity.noContent().build();
     }
 
-    // ROTAS ANINHADAS: COMENTÁRIOS
-
+    /**
+     * Lista todos os comentários associados a uma ocorrência.
+     */
     @GetMapping("/{id}/comentarios")
     public ResponseEntity<List<ComentarioDTO>> listarComentarios(
             @PathVariable Long id
@@ -115,25 +138,33 @@ public class OcorrenciaController {
         return ResponseEntity.ok(lista);
     }
 
+    /**
+     * Cadastra um comentário em uma ocorrência específica
+     * e retorna os dados do comentário criado.
+     */
     @PostMapping("/{id}/comentarios")
     public ResponseEntity<ComentarioDTO> cadastrarComentario(
             @PathVariable Long id,
             @Valid @RequestBody ComentarioDTO dto
     ) {
+        // Converte o DTO recebido em um objeto Comentario e cadastra.
         Comentario criado =
                 comentarioService.cadastrarNaOcorrencia(
                         id,
                         ComentarioMapper.toModel(dto)
                 );
 
+        // Converte o comentário criado para DTO.
         ComentarioDTO resposta = ComentarioMapper.toDTO(criado);
 
+        // Monta o endereço para consultar o comentário criado.
         URI location = ServletUriComponentsBuilder
                 .fromCurrentContextPath()
                 .path("/comentarios/{id}")
                 .buildAndExpand(resposta.id())
                 .toUri();
 
+        // Retorna HTTP 201 (Created) com os dados do comentário.
         return ResponseEntity
                 .created(location)
                 .body(resposta);

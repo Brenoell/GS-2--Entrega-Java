@@ -13,15 +13,31 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+/**
+ * Serviço responsável pelas regras de negócio das fontes de dados.
+ * Realiza validações e utiliza o DAO para acessar os dados.
+ */
 @Service
 public class FonteDadoService {
 
+    /** DAO responsável pelas operações de acesso às fontes de dados. */
     private final FonteDadoDAO dao;
 
+    /**
+     * Constrói o serviço recebendo o DAO necessário para suas operações.
+     *
+     * @param dao objeto responsável pelo acesso aos dados das fontes
+     */
     public FonteDadoService(FonteDadoDAO dao) {
         this.dao = dao;
     }
 
+    /**
+     * Lista todas as fontes de dados cadastradas.
+     * Converte os objetos do modelo para DTO antes de retornar.
+     *
+     * @return lista de fontes de dados em formato DTO
+     */
     public List<FonteDadoDTO> listar() {
         return dao.listar()
                 .stream()
@@ -29,6 +45,14 @@ public class FonteDadoService {
                 .toList();
     }
 
+    /**
+     * Busca uma fonte de dados pelo seu ID.
+     *
+     * @param id identificador da fonte que será buscada
+     * @return fonte de dados encontrada em formato DTO
+     * @throws RegraNegocioException se o ID for inválido
+     * @throws RecursoNaoEncontradoException se a fonte não existir
+     */
     public FonteDadoDTO buscarPorId(Long id) {
         validarId(id);
 
@@ -43,6 +67,15 @@ public class FonteDadoService {
         return FonteDadoMapper.toDTO(fonte);
     }
 
+    /**
+     * Cadastra uma nova fonte de dados após validar os dados informados.
+     * Também verifica se já existe outra fonte com o mesmo nome.
+     *
+     * @param fonteDTO dados da fonte que será cadastrada
+     * @return fonte de dados cadastrada em formato DTO
+     * @throws RegraNegocioException se os dados informados forem inválidos
+     * @throws ConflitoException se já existir uma fonte com o mesmo nome
+     */
     public FonteDadoDTO cadastrar(FonteDadoDTO fonteDTO) {
         validarFonte(fonteDTO);
 
@@ -61,6 +94,17 @@ public class FonteDadoService {
         return FonteDadoMapper.toDTO(fonteCadastrada);
     }
 
+    /**
+     * Atualiza os dados de uma fonte de dados existente.
+     * Verifica se a fonte existe e se outra fonte já utiliza o nome informado.
+     *
+     * @param id identificador da fonte que será atualizada
+     * @param fonteDTO novos dados da fonte
+     * @return fonte de dados atualizada em formato DTO
+     * @throws RegraNegocioException se o ID ou os dados forem inválidos
+     * @throws RecursoNaoEncontradoException se a fonte não existir
+     * @throws ConflitoException se outra fonte já utilizar o nome informado
+     */
     public FonteDadoDTO atualizar(Long id, FonteDadoDTO fonteDTO) {
         validarId(id);
         validarFonte(fonteDTO);
@@ -91,6 +135,14 @@ public class FonteDadoService {
         return FonteDadoMapper.toDTO(fonteAtualizada);
     }
 
+    /**
+     * Exclui uma fonte de dados pelo seu ID.
+     *
+     * @param id identificador da fonte que será excluída
+     * @return true se a fonte for excluída com sucesso
+     * @throws RegraNegocioException se o ID for inválido
+     * @throws RecursoNaoEncontradoException se a fonte não existir
+     */
     public boolean deletar(Long id) {
         validarId(id);
 
@@ -105,6 +157,12 @@ public class FonteDadoService {
         return true;
     }
 
+    /**
+     * Verifica se o ID informado é válido.
+     *
+     * @param id identificador que será validado
+     * @throws RegraNegocioException se o ID for nulo ou menor ou igual a zero
+     */
     private void validarId(Long id) {
         if (id == null || id <= 0) {
             throw new RegraNegocioException(
@@ -113,6 +171,14 @@ public class FonteDadoService {
         }
     }
 
+    /**
+     * Valida os dados de uma fonte de dados.
+     * Verifica se os dados foram informados e se o nome e o tipo não estão vazios.
+     *
+     * @param fonteDTO dados da fonte que serão validados
+     * @throws RegraNegocioException se os dados não forem informados,
+     * se o nome estiver vazio ou se o tipo estiver vazio
+     */
     private void validarFonte(FonteDadoDTO fonteDTO) {
         if (fonteDTO == null) {
             throw new RegraNegocioException(

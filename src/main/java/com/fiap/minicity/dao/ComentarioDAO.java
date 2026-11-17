@@ -1,3 +1,4 @@
+
 package com.fiap.minicity.dao;
 
 import com.fiap.minicity.models.Comentario;
@@ -11,9 +12,20 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Classe responsável por realizar as operações de acesso ao banco de dados
+ * relacionadas aos comentários.
+ */
 @Repository
 public class ComentarioDAO {
 
+    /**
+     * Lista todos os comentários cadastrados no banco de dados,
+     * incluindo os dados da pessoa e do distrito relacionados.
+     *
+     * @return lista contendo todos os comentários
+     * @throws RuntimeException caso ocorra um erro ao consultar o banco
+     */
     public List<Comentario> listar() {
         List<Comentario> lista = new ArrayList<>();
 
@@ -63,7 +75,15 @@ public class ComentarioDAO {
         }
     }
 
-    // Lista os comentários de uma ocorrência (rota aninhada do 1:N)
+    /**
+     * Lista os comentários vinculados a uma ocorrência específica,
+     * organizando os resultados pela data de publicação, do mais recente
+     * para o mais antigo.
+     *
+     * @param idOcorrencia identificador da ocorrência
+     * @return lista de comentários vinculados à ocorrência informada
+     * @throws RuntimeException caso ocorra um erro ao consultar o banco
+     */
     public List<Comentario> listarPorOcorrencia(Long idOcorrencia) {
         List<Comentario> lista = new ArrayList<>();
 
@@ -119,6 +139,13 @@ public class ComentarioDAO {
         }
     }
 
+    /**
+     * Busca um comentário pelo seu identificador.
+     *
+     * @param id identificador do comentário
+     * @return comentário encontrado ou null caso não exista
+     * @throws RuntimeException caso ocorra um erro ao consultar o banco
+     */
     public Comentario buscarPorId(Long id) {
         String sql = """
                 SELECT
@@ -169,6 +196,14 @@ public class ComentarioDAO {
         return null;
     }
 
+    /**
+     * Cadastra um novo comentário no banco de dados.
+     * Após a inserção, recupera o identificador gerado pelo banco.
+     *
+     * @param comentario objeto contendo os dados do comentário que será cadastrado
+     * @return objeto do comentário cadastrado com seu identificador preenchido
+     * @throws RuntimeException caso ocorra um erro ao inserir os dados
+     */
     public Comentario cadastrar(Comentario comentario) {
         String sql = """
                 INSERT INTO COMENTARIO
@@ -197,6 +232,14 @@ public class ComentarioDAO {
         }
     }
 
+    /**
+     * Atualiza os dados de um comentário existente no banco de dados.
+     *
+     * @param id identificador do comentário que será atualizado
+     * @param comentario objeto contendo os novos dados do comentário
+     * @return objeto atualizado ou null caso o comentário não seja encontrado
+     * @throws RuntimeException caso ocorra um erro ao atualizar os dados
+     */
     public Comentario atualizar(Long id, Comentario comentario) {
         String sql = """
                 UPDATE COMENTARIO
@@ -228,6 +271,13 @@ public class ComentarioDAO {
         return null;
     }
 
+    /**
+     * Remove um comentário do banco de dados pelo seu identificador.
+     *
+     * @param id identificador do comentário que será removido
+     * @return true se o comentário foi removido, false caso não tenha sido encontrado
+     * @throws RuntimeException caso ocorra um erro ao excluir os dados
+     */
     public boolean deletar(Long id) {
         String sql = "DELETE FROM COMENTARIO WHERE id_comentario = ?";
 
@@ -243,6 +293,15 @@ public class ComentarioDAO {
         }
     }
 
+    /**
+     * Preenche os parâmetros do PreparedStatement com os dados do comentário.
+     * Também verifica se a ocorrência possui identificador para definir
+     * o valor correspondente no comando SQL.
+     *
+     * @param ps comando SQL que receberá os valores
+     * @param comentario objeto contendo os dados do comentário
+     * @throws SQLException caso ocorra um erro ao preencher os parâmetros
+     */
     private void preencher(
             PreparedStatement ps,
             Comentario comentario
@@ -262,6 +321,15 @@ public class ComentarioDAO {
         }
     }
 
+    /**
+     * Converte os dados de uma linha do ResultSet em um objeto Comentario.
+     * Também cria e preenche os objetos relacionados Pessoa, Distrito
+     * e Ocorrencia.
+     *
+     * @param rs resultado da consulta SQL
+     * @return objeto Comentario preenchido com os dados da linha consultada
+     * @throws SQLException caso ocorra um erro ao acessar os dados do resultado
+     */
     private Comentario mapear(ResultSet rs) throws SQLException {
 
         Pessoa pessoa = new Pessoa();

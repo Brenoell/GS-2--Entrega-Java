@@ -9,9 +9,19 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Classe responsável por realizar as operações de acesso ao banco de dados
+ * relacionadas às categorias de ocorrência.
+ */
 @Repository
 public class CategoriaOcorrenciaDAO {
 
+    /**
+     * Lista todas as categorias de ocorrência cadastradas no banco de dados.
+     *
+     * @return lista contendo todas as categorias de ocorrência
+     * @throws RuntimeException caso ocorra um erro ao consultar o banco
+     */
     public List<CategoriaOcorrencia> listar() {
 
         List<CategoriaOcorrencia> lista = new ArrayList<>();
@@ -37,6 +47,13 @@ public class CategoriaOcorrenciaDAO {
         }
     }
 
+    /**
+     * Busca uma categoria de ocorrência pelo seu identificador.
+     *
+     * @param id identificador da categoria
+     * @return categoria encontrada ou null caso não exista
+     * @throws RuntimeException caso ocorra um erro ao consultar o banco
+     */
     public CategoriaOcorrencia buscarPorId(Long id) {
 
         String sql = """
@@ -59,6 +76,15 @@ public class CategoriaOcorrenciaDAO {
         }
     }
 
+    /**
+     * Cadastra uma nova categoria de ocorrência no banco de dados.
+     * Após a inserção, recupera o identificador gerado pelo banco
+     * e busca os dados cadastrados.
+     *
+     * @param x objeto contendo os dados da categoria que será cadastrada
+     * @return categoria cadastrada com seu identificador preenchido
+     * @throws RuntimeException caso ocorra um erro ao inserir os dados
+     */
     public CategoriaOcorrencia cadastrar(CategoriaOcorrencia x) {
 
         String sql = """
@@ -88,6 +114,14 @@ public class CategoriaOcorrenciaDAO {
         }
     }
 
+    /**
+     * Atualiza os dados de uma categoria de ocorrência existente.
+     *
+     * @param id identificador da categoria que será atualizada
+     * @param x objeto contendo os novos dados da categoria
+     * @return categoria atualizada ou null caso não seja encontrada
+     * @throws RuntimeException caso ocorra um erro ao atualizar os dados
+     */
     public CategoriaOcorrencia atualizar(Long id, CategoriaOcorrencia x) {
 
         String sql = """
@@ -113,6 +147,13 @@ public class CategoriaOcorrenciaDAO {
         }
     }
 
+    /**
+     * Remove uma categoria de ocorrência do banco de dados pelo seu ID.
+     *
+     * @param id identificador da categoria que será removida
+     * @return true se a categoria foi removida, false caso não tenha sido encontrada
+     * @throws RuntimeException caso ocorra um erro ao excluir os dados
+     */
     public boolean deletar(Long id) {
 
         String sql = """
@@ -132,6 +173,15 @@ public class CategoriaOcorrenciaDAO {
         }
     }
 
+    /**
+     * Verifica se já existe uma categoria com o nome informado.
+     * A comparação desconsidera diferenças entre letras maiúsculas,
+     * minúsculas e espaços nas extremidades.
+     *
+     * @param nome nome da categoria que será verificado
+     * @return true se já existir uma categoria com esse nome, false caso contrário
+     * @throws RuntimeException caso ocorra um erro ao consultar o banco
+     */
     public boolean existePorNome(String nome) {
 
         String sql = """
@@ -155,6 +205,15 @@ public class CategoriaOcorrenciaDAO {
         }
     }
 
+    /**
+     * Verifica se outra categoria, diferente da informada,
+     * já utiliza o nome recebido.
+     *
+     * @param nome nome da categoria que será verificado
+     * @param id identificador da categoria que deve ser ignorada na comparação
+     * @return true se outra categoria já utilizar esse nome, false caso contrário
+     * @throws RuntimeException caso ocorra um erro ao consultar o banco
+     */
     public boolean existePorNomeEmOutraCategoria(String nome, Long id) {
 
         String sql = """
@@ -180,6 +239,13 @@ public class CategoriaOcorrenciaDAO {
         }
     }
 
+    /**
+     * Preenche os parâmetros do PreparedStatement com os dados da categoria.
+     *
+     * @param ps comando SQL que receberá os valores
+     * @param x objeto contendo os dados da categoria
+     * @throws SQLException caso ocorra um erro ao preencher os parâmetros
+     */
     private void preencher(PreparedStatement ps, CategoriaOcorrencia x)
             throws SQLException {
 
@@ -187,6 +253,14 @@ public class CategoriaOcorrenciaDAO {
         ps.setString(2, x.getDescTexto());
     }
 
+    /**
+     * Converte os dados de uma linha do ResultSet em um objeto
+     * CategoriaOcorrencia.
+     *
+     * @param rs resultado da consulta SQL
+     * @return objeto CategoriaOcorrencia preenchido com os dados da linha consultada
+     * @throws SQLException caso ocorra um erro ao acessar os dados do resultado
+     */
     private CategoriaOcorrencia mapear(ResultSet rs) throws SQLException {
 
         return new CategoriaOcorrencia(

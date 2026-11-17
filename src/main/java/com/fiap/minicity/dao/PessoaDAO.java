@@ -9,9 +9,19 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Responsável por realizar as operações de acesso ao banco de dados
+ * relacionadas à entidade Pessoa.
+ */
 @Repository
 public class PessoaDAO {
 
+    /**
+     * Lista todas as pessoas cadastradas no banco de dados.
+     *
+     * @return lista contendo as pessoas encontradas
+     * @throws RuntimeException caso ocorra um erro na consulta ao banco
+     */
     public List<Pessoa> listar() {
         List<Pessoa> lista = new ArrayList<>();
 
@@ -36,6 +46,13 @@ public class PessoaDAO {
         }
     }
 
+    /**
+     * Busca uma pessoa pelo seu identificador.
+     *
+     * @param id identificador da pessoa que será buscada
+     * @return pessoa encontrada ou null caso não exista
+     * @throws RuntimeException caso ocorra um erro na consulta ao banco
+     */
     public Pessoa buscarPorId(Long id) {
         String sql = """
                 SELECT id_pessoa, nm_pessoa, ds_email, ds_perfil, dt_cadastro
@@ -57,8 +74,14 @@ public class PessoaDAO {
         }
     }
 
-    // Busca uma pessoa pelo e-mail, incluindo o hash da senha.
-    // Será utilizado no login.
+    /**
+     * Busca uma pessoa pelo e-mail, incluindo o hash da senha.
+     * Esse método é utilizado no processo de login.
+     *
+     * @param email e-mail utilizado para localizar a pessoa
+     * @return pessoa encontrada com a senha ou null caso não exista
+     * @throws RuntimeException caso ocorra um erro na consulta ao banco
+     */
     public Pessoa buscarPorEmail(String email) {
         String sql = """
                 SELECT id_pessoa, nm_pessoa, ds_senha, ds_email, ds_perfil, dt_cadastro
@@ -80,6 +103,13 @@ public class PessoaDAO {
         }
     }
 
+    /**
+     * Cadastra uma nova pessoa no banco de dados.
+     *
+     * @param x objeto Pessoa contendo os dados para cadastro
+     * @return pessoa cadastrada com seu identificador preenchido e sem a senha
+     * @throws RuntimeException caso ocorra um erro durante o cadastro
+     */
     public Pessoa cadastrar(Pessoa x) {
         String sql = """
                 INSERT INTO PESSOA (
@@ -118,6 +148,14 @@ public class PessoaDAO {
         }
     }
 
+    /**
+     * Atualiza os dados de uma pessoa no banco de dados.
+     *
+     * @param id identificador da pessoa que será atualizada
+     * @param x objeto Pessoa contendo os novos dados
+     * @return pessoa atualizada ou null caso não seja encontrada
+     * @throws RuntimeException caso ocorra um erro durante a atualização
+     */
     public Pessoa atualizar(Long id, Pessoa x) {
         String sql = """
                 UPDATE PESSOA
@@ -147,6 +185,14 @@ public class PessoaDAO {
         }
     }
 
+    /**
+     * Exclui uma pessoa do banco de dados pelo seu identificador.
+     *
+     * @param id identificador da pessoa que será excluída
+     * @return true se a pessoa foi excluída ou false caso não exista
+     * @throws ConflitoException caso a pessoa esteja vinculada a ocorrências
+     * @throws RuntimeException caso ocorra outro erro durante a exclusão
+     */
     public boolean deletar(Long id) {
         String sql = "DELETE FROM PESSOA WHERE id_pessoa = ?";
 
@@ -157,19 +203,25 @@ public class PessoaDAO {
 
             return ps.executeUpdate() > 0;
 
-        }  catch (SQLException e) {
+        } catch (SQLException e) {
 
-        if (e.getErrorCode() == 2292) {
-            throw new ConflitoException(
-                    "Não é possível excluir esta pessoa, pois ela está vinculada a uma ou mais ocorrências."
-            );
+            if (e.getErrorCode() == 2292) {
+                throw new ConflitoException(
+                        "Não é possível excluir esta pessoa, pois ela está vinculada a uma ou mais ocorrências."
+                );
+            }
+
+            throw new RuntimeException("Erro ao deletar pessoa.", e);
         }
-
-        throw new RuntimeException("Erro ao deletar pessoa.", e);
-    }
     }
 
-    // Verifica se o e-mail já está cadastrado
+    /**
+     * Verifica se um e-mail já está cadastrado no banco de dados.
+     *
+     * @param email e-mail que será verificado
+     * @return true se o e-mail já existir ou false caso contrário
+     * @throws RuntimeException caso ocorra um erro na consulta ao banco
+     */
     public boolean existePorEmail(String email) {
 
         String sql = """
@@ -193,7 +245,14 @@ public class PessoaDAO {
         }
     }
 
-    // Verifica se outra pessoa já utiliza esse e-mail
+    /**
+     * Verifica se outra pessoa, diferente da informada, já utiliza o e-mail.
+     *
+     * @param email e-mail que será verificado
+     * @param id identificador da pessoa que deve ser desconsiderada
+     * @return true se outra pessoa utilizar o e-mail ou false caso contrário
+     * @throws RuntimeException caso ocorra um erro na consulta ao banco
+     */
     public boolean existePorEmailEmOutraPessoa(String email, Long id) {
 
         String sql = """
@@ -219,7 +278,14 @@ public class PessoaDAO {
         }
     }
 
-    // Transforma o resultado do banco em Pessoa, sem senha.
+    /**
+     * Converte os dados de um ResultSet em um objeto Pessoa,
+     * sem incluir a senha.
+     *
+     * @param rs resultado da consulta ao banco de dados
+     * @return objeto Pessoa preenchido com os dados encontrados
+     * @throws SQLException caso ocorra um erro ao acessar os dados do resultado
+     */
     private Pessoa mapear(ResultSet rs) throws SQLException {
         Pessoa pessoa = new Pessoa();
 
@@ -232,7 +298,14 @@ public class PessoaDAO {
         return pessoa;
     }
 
-    // Transforma o resultado do banco em Pessoa, incluindo a senha.
+    /**
+     * Converte os dados de um ResultSet em um objeto Pessoa,
+     * incluindo o hash da senha.
+     *
+     * @param rs resultado da consulta ao banco de dados
+     * @return objeto Pessoa preenchido com os dados, incluindo a senha
+     * @throws SQLException caso ocorra um erro ao acessar os dados do resultado
+     */
     private Pessoa mapearComSenha(ResultSet rs) throws SQLException {
         Pessoa pessoa = mapear(rs);
 

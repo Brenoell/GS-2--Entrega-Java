@@ -1,4 +1,3 @@
-
 package com.fiap.minicity.dao;
 
 import com.fiap.minicity.models.*;
@@ -9,9 +8,14 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Responsável por realizar as operações de acesso ao banco de dados
+ * relacionadas à entidade Ocorrencia.
+ */
 @Repository
 public class OcorrenciaDAO {
 
+    /** Consulta SQL com as colunas utilizadas para recuperar uma ocorrência. */
     private final String colunas = """
             SELECT id_ocorrencia, nm_titulo, ds_ocorrencia,
                    nr_gravidade, ds_origem, ds_status,
@@ -22,6 +26,12 @@ public class OcorrenciaDAO {
             FROM OCORRENCIA
             """;
 
+    /**
+     * Lista todas as ocorrências cadastradas no banco de dados.
+     *
+     * @return lista contendo as ocorrências encontradas
+     * @throws RuntimeException caso ocorra um erro na consulta ao banco
+     */
     public List<Ocorrencia> listar() {
 
         List<Ocorrencia> lista = new ArrayList<>();
@@ -42,6 +52,13 @@ public class OcorrenciaDAO {
         }
     }
 
+    /**
+     * Busca uma ocorrência pelo seu identificador.
+     *
+     * @param id identificador da ocorrência que será buscada
+     * @return ocorrência encontrada ou null caso não exista
+     * @throws RuntimeException caso ocorra um erro na consulta ao banco
+     */
     public Ocorrencia buscarPorId(Long id) {
 
         try (Connection c = ConnectionFactory.obterConexao();
@@ -59,7 +76,13 @@ public class OcorrenciaDAO {
         }
     }
 
-    // CADASTRAR OCORRÊNCIA
+    /**
+     * Cadastra uma nova ocorrência no banco de dados.
+     *
+     * @param x objeto Ocorrencia contendo os dados para cadastro
+     * @return ocorrência cadastrada com seu identificador preenchido
+     * @throws RuntimeException caso ocorra um erro durante o cadastro
+     */
     public Ocorrencia cadastrar(Ocorrencia x) {
 
         String sql = """
@@ -98,7 +121,14 @@ public class OcorrenciaDAO {
         }
     }
 
-    // ATUALIZAR OCORRÊNCIA
+    /**
+     * Atualiza os dados de uma ocorrência no banco de dados.
+     *
+     * @param id identificador da ocorrência que será atualizada
+     * @param x objeto Ocorrencia contendo os novos dados
+     * @return ocorrência atualizada ou null caso não seja encontrada
+     * @throws RuntimeException caso ocorra um erro durante a atualização
+     */
     public Ocorrencia atualizar(Long id, Ocorrencia x) {
 
         String sql = """
@@ -137,7 +167,13 @@ public class OcorrenciaDAO {
         }
     }
 
-    // DELETAR OCORRÊNCIA
+    /**
+     * Exclui uma ocorrência do banco de dados pelo seu identificador.
+     *
+     * @param id identificador da ocorrência que será excluída
+     * @return true se a ocorrência foi excluída ou false caso não exista
+     * @throws RuntimeException caso ocorra um erro durante a exclusão
+     */
     public boolean deletar(Long id) {
 
         try (Connection c = ConnectionFactory.obterConexao();
@@ -153,7 +189,14 @@ public class OcorrenciaDAO {
         }
     }
 
-    // PREENCHER PARÂMETROS
+    /**
+     * Preenche os parâmetros do PreparedStatement com os dados da ocorrência.
+     * Também trata os valores opcionais e as datas antes de executar o SQL.
+     *
+     * @param ps PreparedStatement que receberá os valores da ocorrência
+     * @param x objeto Ocorrencia contendo os dados que serão preenchidos
+     * @throws SQLException caso ocorra um erro ao definir os parâmetros SQL
+     */
     private void preencher(PreparedStatement ps, Ocorrencia x)
             throws SQLException {
 
@@ -189,7 +232,14 @@ public class OcorrenciaDAO {
         ps.setString(15, x.getIdExterno());
     }
 
-    // CONVERTER RESULTADO DO BANCO PARA MODEL
+    /**
+     * Converte os dados de um ResultSet em um objeto Ocorrencia.
+     * Também recupera os identificadores dos objetos relacionados.
+     *
+     * @param rs resultado da consulta ao banco de dados
+     * @return objeto Ocorrencia preenchido com os dados encontrados
+     * @throws SQLException caso ocorra um erro ao acessar os dados do resultado
+     */
     private Ocorrencia mapear(ResultSet rs) throws SQLException {
 
         Ocorrencia x = new Ocorrencia();
@@ -208,14 +258,17 @@ public class OcorrenciaDAO {
         x.setDataPublicacao(DAOUtil.data(rs, "dt_publicacao"));
         x.setDataAtualizacao(DAOUtil.data(rs, "dt_atualizacao"));
 
+        // Recupera o identificador do distrito relacionado.
         Distrito distrito = new Distrito();
         distrito.setId(rs.getLong("id_distrito"));
         x.setDistrito(distrito);
 
+        // Recupera o identificador da categoria relacionada.
         CategoriaOcorrencia categoria = new CategoriaOcorrencia();
         categoria.setId(rs.getLong("id_categoria"));
         x.setCategoria(categoria);
 
+        // Recupera a fonte de dados, caso exista.
         Long idFonte = DAOUtil.id(rs, "id_fonte");
 
         if (idFonte != null) {
@@ -224,6 +277,7 @@ public class OcorrenciaDAO {
             x.setFonte(fonte);
         }
 
+        // Recupera a pessoa responsável, caso exista.
         Long idPessoa = DAOUtil.id(rs, "id_pessoa");
 
         if (idPessoa != null) {

@@ -26,15 +26,40 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Serviço responsável pelas regras de negócio das ocorrências.
+ * Realiza validações, consultas e operações de cadastro, atualização e exclusão.
+ * Também gerencia os relacionamentos entre ocorrências, pessoas, distritos,
+ * categorias e fontes de dados.
+ */
 @Service
 public class OcorrenciaService {
 
+    /** DAO responsável pelas operações de acesso às ocorrências. */
     private final OcorrenciaDAO dao;
+
+    /** DAO responsável pelo acesso aos dados dos distritos. */
     private final DistritoDAO distritoDAO;
+
+    /** DAO responsável pelo acesso às categorias de ocorrência. */
     private final CategoriaOcorrenciaDAO categoriaDAO;
+
+    /** DAO responsável pelo acesso às fontes de dados. */
     private final FonteDadoDAO fonteDAO;
+
+    /** DAO responsável pelo acesso aos dados das pessoas. */
     private final PessoaDAO pessoaDAO;
 
+    /**
+     * Constrói o serviço recebendo todos os DAOs necessários
+     * para acessar os dados das ocorrências e seus relacionamentos.
+     *
+     * @param dao DAO responsável pelas ocorrências
+     * @param distritoDAO DAO responsável pelos distritos
+     * @param categoriaDAO DAO responsável pelas categorias de ocorrência
+     * @param fonteDAO DAO responsável pelas fontes de dados
+     * @param pessoaDAO DAO responsável pelas pessoas
+     */
     public OcorrenciaService(
             OcorrenciaDAO dao,
             DistritoDAO distritoDAO,
@@ -49,7 +74,13 @@ public class OcorrenciaService {
         this.pessoaDAO = pessoaDAO;
     }
 
-    // LISTAR TODAS AS OCORRÊNCIAS
+    /**
+     * Lista todas as ocorrências cadastradas.
+     * Carrega os dados dos relacionamentos antes de converter
+     * cada ocorrência para DTO.
+     *
+     * @return lista de ocorrências em formato DTO
+     */
     public List<OcorrenciaDTO> listar() {
 
         List<Ocorrencia> ocorrencias = dao.listar();
@@ -62,7 +93,14 @@ public class OcorrenciaService {
                 .toList();
     }
 
-    // BUSCAR OCORRÊNCIA POR ID
+    /**
+     * Busca uma ocorrência pelo seu ID.
+     *
+     * @param id identificador da ocorrência que será buscada
+     * @return ocorrência encontrada em formato DTO
+     * @throws RegraNegocioException se o ID for inválido
+     * @throws RecursoNaoEncontradoException se a ocorrência não existir
+     */
     public OcorrenciaDTO buscarPorId(Long id) {
 
         validarId(id);
@@ -80,7 +118,16 @@ public class OcorrenciaService {
         return OcorrenciaMapper.toDTO(ocorrencia);
     }
 
-    // CADASTRAR OCORRÊNCIA
+    /**
+     * Cadastra uma nova ocorrência utilizando os dados informados no DTO.
+     * Verifica a existência do distrito, da categoria e da pessoa ou fonte
+     * de dados, conforme a origem da ocorrência.
+     *
+     * @param objeto dados da ocorrência que será cadastrada
+     * @return ocorrência cadastrada em formato DTO
+     * @throws RegraNegocioException se os dados informados forem inválidos
+     * @throws RecursoNaoEncontradoException se algum relacionamento informado não existir
+     */
     public OcorrenciaDTO cadastrar(OcorrenciaDTO objeto) {
 
         validarOcorrencia(objeto);
@@ -147,7 +194,17 @@ public class OcorrenciaService {
         return OcorrenciaMapper.toDTO(cadastrada);
     }
 
-    // CADASTRAR OCORRÊNCIA COMO CIDADÃO
+    /**
+     * Cadastra uma ocorrência criada por um cidadão autenticado.
+     * Valida os dados, busca a pessoa, o distrito e a categoria,
+     * e define automaticamente a origem, o status e as datas.
+     *
+     * @param objeto dados informados para criar a ocorrência
+     * @param idPessoa identificador da pessoa autenticada que está cadastrando
+     * @return ocorrência cadastrada em formato DTO
+     * @throws RegraNegocioException se os dados ou o ID da pessoa forem inválidos
+     * @throws RecursoNaoEncontradoException se a pessoa, o distrito ou a categoria não existirem
+     */
     public OcorrenciaDTO cadastrarComoCidadao(
             CriarOcorrenciaDTO objeto,
             Long idPessoa
@@ -282,7 +339,17 @@ public class OcorrenciaService {
         return OcorrenciaMapper.toDTO(cadastrada);
     }
 
-    // ATUALIZAR OCORRÊNCIA
+    /**
+     * Atualiza os dados de uma ocorrência existente.
+     * Verifica se a ocorrência, o distrito, a categoria e a pessoa ou fonte
+     * de dados existem, conforme a origem informada.
+     *
+     * @param id identificador da ocorrência que será atualizada
+     * @param objeto novos dados da ocorrência
+     * @return ocorrência atualizada em formato DTO
+     * @throws RegraNegocioException se o ID ou os dados forem inválidos
+     * @throws RecursoNaoEncontradoException se a ocorrência ou algum relacionamento não existir
+     */
     public OcorrenciaDTO atualizar(Long id, OcorrenciaDTO objeto) {
 
         validarId(id);
@@ -362,7 +429,14 @@ public class OcorrenciaService {
         return OcorrenciaMapper.toDTO(atualizada);
     }
 
-    // DELETAR OCORRÊNCIA
+    /**
+     * Exclui uma ocorrência pelo seu ID.
+     *
+     * @param id identificador da ocorrência que será excluída
+     * @return true se a ocorrência for excluída com sucesso
+     * @throws RegraNegocioException se o ID for inválido
+     * @throws RecursoNaoEncontradoException se a ocorrência não existir
+     */
     public boolean deletar(Long id) {
 
         validarId(id);
@@ -378,7 +452,13 @@ public class OcorrenciaService {
         return true;
     }
 
-    // CARREGAR DADOS COMPLETOS DOS RELACIONAMENTOS
+    /**
+     * Carrega os dados completos dos relacionamentos de uma ocorrência.
+     * Busca novamente os dados do distrito, da categoria, da fonte e da pessoa,
+     * quando esses relacionamentos estiverem informados.
+     *
+     * @param ocorrencia ocorrência cujos relacionamentos serão carregados
+     */
     private void carregarRelacionamentos(Ocorrencia ocorrencia) {
 
         if (ocorrencia.getDistrito() != null) {
@@ -414,7 +494,12 @@ public class OcorrenciaService {
         }
     }
 
-    // VALIDAR ID
+    /**
+     * Verifica se o ID informado é válido.
+     *
+     * @param id identificador que será validado
+     * @throws RegraNegocioException se o ID for nulo ou menor ou igual a zero
+     */
     private void validarId(Long id) {
 
         if (id == null || id <= 0) {
@@ -422,7 +507,14 @@ public class OcorrenciaService {
         }
     }
 
-    // VALIDAR OCORRÊNCIA
+    /**
+     * Valida os dados de uma ocorrência antes do cadastro ou atualização.
+     * Verifica título, gravidade, origem, status, coordenadas, data,
+     * distrito, categoria e os relacionamentos obrigatórios conforme a origem.
+     *
+     * @param objeto dados da ocorrência que serão validados
+     * @throws RegraNegocioException se os dados informados forem inválidos
+     */
     private void validarOcorrencia(OcorrenciaDTO objeto) {
 
         if (objeto == null) {

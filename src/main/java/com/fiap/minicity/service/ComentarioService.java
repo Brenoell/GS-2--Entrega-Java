@@ -1,3 +1,4 @@
+
 package com.fiap.minicity.service;
 
 import com.fiap.minicity.dao.ComentarioDAO;
@@ -11,21 +12,47 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Serviço responsável pelas regras de negócio dos comentários.
+ * Realiza validações e utiliza os DAOs para acessar os dados.
+ */
 @Service
 public class ComentarioService {
 
+    /** DAO responsável pelas operações de acesso aos comentários. */
     private final ComentarioDAO dao;
+
+    /** DAO responsável pelo acesso aos dados das ocorrências. */
     private final OcorrenciaDAO ocorrenciaDAO;
 
+    /**
+     * Constrói o serviço recebendo os DAOs necessários para suas operações.
+     *
+     * @param dao DAO responsável pelos comentários
+     * @param ocorrenciaDAO DAO responsável pelas ocorrências
+     */
     public ComentarioService(ComentarioDAO dao, OcorrenciaDAO ocorrenciaDAO) {
         this.dao = dao;
         this.ocorrenciaDAO = ocorrenciaDAO;
     }
 
+    /**
+     * Lista todos os comentários cadastrados.
+     *
+     * @return lista de comentários
+     */
     public List<Comentario> listar() {
         return dao.listar();
     }
 
+    /**
+     * Busca um comentário pelo seu ID.
+     *
+     * @param id identificador do comentário que será buscado
+     * @return comentário encontrado
+     * @throws RegraNegocioException se o ID for inválido
+     * @throws RecursoNaoEncontradoException se o comentário não existir
+     */
     public Comentario buscarPorId(Long id) {
 
         validarId(id);
@@ -41,6 +68,13 @@ public class ComentarioService {
         return comentario;
     }
 
+    /**
+     * Cadastra um novo comentário após validar os dados informados.
+     *
+     * @param objeto dados do comentário que será cadastrado
+     * @return comentário cadastrado
+     * @throws RegraNegocioException se os dados do comentário forem inválidos
+     */
     public Comentario cadastrar(Comentario objeto) {
 
         validarComentario(objeto);
@@ -48,6 +82,15 @@ public class ComentarioService {
         return dao.cadastrar(objeto);
     }
 
+    /**
+     * Atualiza os dados de um comentário existente.
+     *
+     * @param id identificador do comentário que será atualizado
+     * @param objeto novos dados do comentário
+     * @return comentário atualizado
+     * @throws RegraNegocioException se o ID ou os dados forem inválidos
+     * @throws RecursoNaoEncontradoException se o comentário não existir
+     */
     public Comentario atualizar(Long id, Comentario objeto) {
 
         validarId(id);
@@ -64,6 +107,14 @@ public class ComentarioService {
         return comentario;
     }
 
+    /**
+     * Exclui um comentário pelo seu ID.
+     *
+     * @param id identificador do comentário que será excluído
+     * @return true se o comentário for excluído com sucesso
+     * @throws RegraNegocioException se o ID for inválido
+     * @throws RecursoNaoEncontradoException se o comentário não existir
+     */
     public boolean deletar(Long id) {
 
         validarId(id);
@@ -79,8 +130,14 @@ public class ComentarioService {
         return true;
     }
 
-    // ROTAS ANINHADAS: /ocorrencias/{id}/comentarios
-
+    /**
+     * Lista os comentários vinculados a uma ocorrência específica.
+     *
+     * @param idOcorrencia identificador da ocorrência
+     * @return lista de comentários da ocorrência
+     * @throws RegraNegocioException se o ID da ocorrência for inválido
+     * @throws RecursoNaoEncontradoException se a ocorrência não existir
+     */
     public List<Comentario> listarPorOcorrencia(Long idOcorrencia) {
 
         validarId(idOcorrencia);
@@ -89,6 +146,16 @@ public class ComentarioService {
         return dao.listarPorOcorrencia(idOcorrencia);
     }
 
+    /**
+     * Cadastra um comentário vinculado a uma ocorrência.
+     * Define a ocorrência no comentário antes de realizar o cadastro.
+     *
+     * @param idOcorrencia identificador da ocorrência que receberá o comentário
+     * @param comentario dados do comentário que será cadastrado
+     * @return comentário cadastrado e vinculado à ocorrência
+     * @throws RegraNegocioException se o ID da ocorrência ou os dados do comentário forem inválidos
+     * @throws RecursoNaoEncontradoException se a ocorrência não existir
+     */
     public Comentario cadastrarNaOcorrencia(Long idOcorrencia, Comentario comentario) {
 
         validarId(idOcorrencia);
@@ -101,6 +168,12 @@ public class ComentarioService {
         return cadastrar(comentario);
     }
 
+    /**
+     * Verifica se uma ocorrência existe no banco de dados.
+     *
+     * @param idOcorrencia identificador da ocorrência que será verificada
+     * @throws RecursoNaoEncontradoException se a ocorrência não existir
+     */
     private void verificarOcorrenciaExiste(Long idOcorrencia) {
 
         if (ocorrenciaDAO.buscarPorId(idOcorrencia) == null) {
@@ -110,6 +183,12 @@ public class ComentarioService {
         }
     }
 
+    /**
+     * Verifica se o ID informado é válido.
+     *
+     * @param id identificador que será validado
+     * @throws RegraNegocioException se o ID for nulo ou menor ou igual a zero
+     */
     private void validarId(Long id) {
 
         if (id == null || id <= 0) {
@@ -117,6 +196,15 @@ public class ComentarioService {
         }
     }
 
+    /**
+     * Valida os dados de um comentário antes do cadastro ou atualização.
+     * Verifica o conteúdo, a pessoa e os IDs opcionais de distrito e ocorrência.
+     *
+     * @param objeto comentário que terá seus dados validados
+     * @throws RegraNegocioException se o comentário não for informado,
+     * se o conteúdo estiver vazio ou ultrapassar 500 caracteres,
+     * se a pessoa não for válida ou se os IDs opcionais forem inválidos
+     */
     private void validarComentario(Comentario objeto) {
 
         if (objeto == null) {
@@ -147,7 +235,7 @@ public class ComentarioService {
         }
 
         // Distrito e ocorrência são opcionais.
-        // Se forem informados, seus IDs precisam ser válidos.
+        // Se forem informados, seus Ids precisam ser válidos.
 
         if (objeto.getDistrito() != null &&
                 (objeto.getDistrito().getId() == null ||

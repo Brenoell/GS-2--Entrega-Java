@@ -15,11 +15,13 @@ public class CorsConfig implements WebMvcConfigurer {
 
         if (origens == null || origens.isBlank()) {
             origens = "http://localhost:5173";
+        } else {
+            origens += ",http://localhost:5173";
         }
 
         registry.addMapping("/**")
                 .allowedOrigins(origens.split(","))
-                .allowedMethods("GET", "POST", "PUT", "DELETEe", "OPTIONS")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
     }

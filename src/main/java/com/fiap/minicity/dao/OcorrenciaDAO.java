@@ -2,6 +2,7 @@
 package com.fiap.minicity.dao;
 
 import com.fiap.minicity.models.*;
+
 import org.springframework.stereotype.Repository;
 
 import java.sql.*;
@@ -58,16 +59,17 @@ public class OcorrenciaDAO {
         }
     }
 
+    // CADASTRAR OCORRÊNCIA
     public Ocorrencia cadastrar(Ocorrencia x) {
 
         String sql = """
                 INSERT INTO OCORRENCIA (
                     nm_titulo, ds_ocorrencia, nr_gravidade,
                     ds_origem, ds_status, nr_latitude, nr_longitude,
-                    dt_ocorrencia, dt_atualizacao,
+                    dt_ocorrencia, dt_publicacao, dt_atualizacao,
                     id_distrito, id_categoria, id_fonte,
                     id_pessoa, id_externo
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
 
         try (Connection c = ConnectionFactory.obterConexao();
@@ -96,6 +98,7 @@ public class OcorrenciaDAO {
         }
     }
 
+    // ATUALIZAR OCORRÊNCIA
     public Ocorrencia atualizar(Long id, Ocorrencia x) {
 
         String sql = """
@@ -134,6 +137,7 @@ public class OcorrenciaDAO {
         }
     }
 
+    // DELETAR OCORRÊNCIA
     public boolean deletar(Long id) {
 
         try (Connection c = ConnectionFactory.obterConexao();
@@ -149,6 +153,7 @@ public class OcorrenciaDAO {
         }
     }
 
+    // PREENCHER PARÂMETROS
     private void preencher(PreparedStatement ps, Ocorrencia x)
             throws SQLException {
 
@@ -163,26 +168,28 @@ public class OcorrenciaDAO {
         ps.setObject(7, x.getLongitude());
 
         DAOUtil.data(ps, 8, x.getDataOcorrencia());
-        DAOUtil.data(ps, 9, x.getDataAtualizacao());
+        DAOUtil.data(ps, 9, x.getDataPublicacao());
+        DAOUtil.data(ps, 10, x.getDataAtualizacao());
 
-        ps.setLong(10, x.getDistrito().getId());
-        ps.setLong(11, x.getCategoria().getId());
+        ps.setLong(11, x.getDistrito().getId());
+        ps.setLong(12, x.getCategoria().getId());
 
         if (x.getFonte() == null) {
-            ps.setNull(12, Types.NUMERIC);
+            ps.setNull(13, Types.NUMERIC);
         } else {
-            ps.setLong(12, x.getFonte().getId());
+            ps.setLong(13, x.getFonte().getId());
         }
 
         if (x.getPessoa() == null) {
-            ps.setNull(13, Types.NUMERIC);
+            ps.setNull(14, Types.NUMERIC);
         } else {
-            ps.setLong(13, x.getPessoa().getId());
+            ps.setLong(14, x.getPessoa().getId());
         }
 
-        ps.setString(14, x.getIdExterno());
+        ps.setString(15, x.getIdExterno());
     }
 
+    // CONVERTER RESULTADO DO BANCO PARA MODEL
     private Ocorrencia mapear(ResultSet rs) throws SQLException {
 
         Ocorrencia x = new Ocorrencia();

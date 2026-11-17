@@ -8,6 +8,7 @@ import com.fiap.minicity.dao.FonteDadoDAO;
 import com.fiap.minicity.dao.PessoaDAO;
 
 import com.fiap.minicity.dto.OcorrenciaDTO;
+import com.fiap.minicity.dto.CriarOcorrenciaDTO;
 
 import com.fiap.minicity.exception.RecursoNaoEncontradoException;
 import com.fiap.minicity.exception.RegraNegocioException;
@@ -22,6 +23,7 @@ import com.fiap.minicity.models.Pessoa;
 
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -137,6 +139,141 @@ public class OcorrenciaService {
         ocorrencia.setCategoria(categoria);
         ocorrencia.setFonte(fonte);
         ocorrencia.setPessoa(pessoa);
+
+        Ocorrencia cadastrada = dao.cadastrar(ocorrencia);
+
+        carregarRelacionamentos(cadastrada);
+
+        return OcorrenciaMapper.toDTO(cadastrada);
+    }
+
+    // CADASTRAR OCORRÊNCIA COMO CIDADÃO
+    public OcorrenciaDTO cadastrarComoCidadao(
+            CriarOcorrenciaDTO objeto,
+            Long idPessoa
+    ) {
+
+        if (objeto == null) {
+            throw new RegraNegocioException(
+                    "Os dados da ocorrência são obrigatórios."
+            );
+        }
+
+        validarId(idPessoa);
+
+        if (objeto.nomeTitulo() == null ||
+                objeto.nomeTitulo().isBlank() ||
+                objeto.nomeTitulo().length() < 3 ||
+                objeto.nomeTitulo().length() > 150) {
+            throw new RegraNegocioException(
+                    "O título deve ter entre 3 e 150 caracteres."
+            );
+        }
+
+        if (objeto.descOcorrencia() == null ||
+                objeto.descOcorrencia().isBlank() ||
+                objeto.descOcorrencia().length() > 1000) {
+            throw new RegraNegocioException(
+                    "A descrição é obrigatória e deve ter no máximo 1000 caracteres."
+            );
+        }
+
+        if (objeto.gravidade() == null ||
+                objeto.gravidade() < 1 ||
+                objeto.gravidade() > 5) {
+            throw new RegraNegocioException(
+                    "A gravidade deve estar entre 1 e 5."
+            );
+        }
+
+        if (objeto.latitude() == null ||
+                !Double.isFinite(objeto.latitude()) ||
+                objeto.latitude() < -90 ||
+                objeto.latitude() > 90) {
+            throw new RegraNegocioException("Latitude inválida.");
+        }
+
+        if (objeto.longitude() == null ||
+                !Double.isFinite(objeto.longitude()) ||
+                objeto.longitude() < -180 ||
+                objeto.longitude() > 180) {
+            throw new RegraNegocioException("Longitude inválida.");
+        }
+
+        if (objeto.dataOcorrencia() == null ||
+                objeto.dataOcorrencia().isAfter(LocalDateTime.now())) {
+            throw new RegraNegocioException(
+                    "A data da ocorrência é obrigatória e não pode ser futura."
+            );
+        }
+
+        if (objeto.distrito() == null ||
+                objeto.distrito().id() == null ||
+                objeto.distrito().id() <= 0) {
+            throw new RegraNegocioException(
+                    "É necessário informar um distrito válido."
+            );
+        }
+
+        if (objeto.categoria() == null ||
+                objeto.categoria().id() == null ||
+                objeto.categoria().id() <= 0) {
+            throw new RegraNegocioException(
+                    "É necessário informar uma categoria válida."
+            );
+        }
+
+        // Busca a pessoa autenticada
+        Pessoa pessoa = pessoaDAO.buscarPorId(idPessoa);
+
+        if (pessoa == null) {
+            throw new RecursoNaoEncontradoException(
+                    "Pessoa não encontrada."
+            );
+        }
+
+        // Busca o distrito
+        Distrito distrito = distritoDAO.buscarPorId(
+                objeto.distrito().id()
+        );
+
+        if (distrito == null) {
+            throw new RecursoNaoEncontradoException(
+                    "Distrito não encontrado."
+            );
+        }
+
+        // Busca a categoria
+        CategoriaOcorrencia categoria = categoriaDAO.buscarPorId(
+                objeto.categoria().id()
+        );
+
+        if (categoria == null) {
+            throw new RecursoNaoEncontradoException(
+                    "Categoria não encontrada."
+            );
+        }
+
+        // Cria a ocorrência
+        Ocorrencia ocorrencia = new Ocorrencia();
+
+        ocorrencia.setNomeTitulo(objeto.nomeTitulo());
+        ocorrencia.setDescOcorrencia(objeto.descOcorrencia());
+        ocorrencia.setGravidade(objeto.gravidade());
+        ocorrencia.setLatitude(objeto.latitude());
+        ocorrencia.setLongitude(objeto.longitude());
+        ocorrencia.setDataOcorrencia(objeto.dataOcorrencia());
+
+        // Dados definidos automaticamente
+        ocorrencia.setOrigem("CIDADAO");
+        ocorrencia.setStatus("ATIVA");
+        ocorrencia.setDataPublicacao(LocalDateTime.now());
+        ocorrencia.setDataAtualizacao(null);
+
+        ocorrencia.setDistrito(distrito);
+        ocorrencia.setCategoria(categoria);
+        ocorrencia.setPessoa(pessoa);
+        ocorrencia.setFonte(null);
 
         Ocorrencia cadastrada = dao.cadastrar(ocorrencia);
 

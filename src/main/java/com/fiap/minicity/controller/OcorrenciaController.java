@@ -1,12 +1,19 @@
+
 package com.fiap.minicity.controller;
 
 import com.fiap.minicity.dto.ComentarioDTO;
 import com.fiap.minicity.dto.OcorrenciaDTO;
+import com.fiap.minicity.dto.CriarOcorrenciaDTO;
+
+import com.fiap.minicity.exception.CredenciaisInvalidasException;
+
 import com.fiap.minicity.mapper.ComentarioMapper;
 import com.fiap.minicity.models.Comentario;
+
 import com.fiap.minicity.service.ComentarioService;
 import com.fiap.minicity.service.OcorrenciaService;
 
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
@@ -23,8 +30,10 @@ public class OcorrenciaController {
     private final OcorrenciaService service;
     private final ComentarioService comentarioService;
 
-    public OcorrenciaController(OcorrenciaService service,
-                                ComentarioService comentarioService) {
+    public OcorrenciaController(
+            OcorrenciaService service,
+            ComentarioService comentarioService
+    ) {
         this.service = service;
         this.comentarioService = comentarioService;
     }
@@ -41,11 +50,25 @@ public class OcorrenciaController {
         return ResponseEntity.ok(service.buscarPorId(id));
     }
 
+    // CADASTRAR OCORRÊNCIA COMO CIDADÃO
     @PostMapping
     public ResponseEntity<OcorrenciaDTO> cadastrar(
-            @Valid @RequestBody OcorrenciaDTO ocorrenciaDTO
+            @Valid @RequestBody CriarOcorrenciaDTO ocorrenciaDTO,
+            HttpSession session
     ) {
-        OcorrenciaDTO ocorrencia = service.cadastrar(ocorrenciaDTO);
+
+        // Recupera o ID da pessoa que fez login
+        Long idPessoa = (Long) session.getAttribute("idPessoa");
+
+        if (idPessoa == null) {
+            throw new CredenciaisInvalidasException(
+                    "Usuário não autenticado."
+            );
+        }
+
+        // Cadastra a ocorrência vinculada à pessoa logada
+        OcorrenciaDTO ocorrencia =
+                service.cadastrarComoCidadao(ocorrenciaDTO, idPessoa);
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -63,26 +86,31 @@ public class OcorrenciaController {
             @PathVariable Long id,
             @Valid @RequestBody OcorrenciaDTO ocorrenciaDTO
     ) {
-        return ResponseEntity.ok(service.atualizar(id, ocorrenciaDTO));
+        return ResponseEntity.ok(
+                service.atualizar(id, ocorrenciaDTO)
+        );
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+    public ResponseEntity<Void> deletar(
+            @PathVariable Long id
+    ) {
         service.deletar(id);
 
         return ResponseEntity.noContent().build();
     }
 
-    // ROTAS ANINHADAS (1:N): /ocorrencias/{id}/comentarios
+    // ROTAS ANINHADAS: COMENTÁRIOS
 
     @GetMapping("/{id}/comentarios")
     public ResponseEntity<List<ComentarioDTO>> listarComentarios(
             @PathVariable Long id
     ) {
-        List<ComentarioDTO> lista = comentarioService.listarPorOcorrencia(id)
-                .stream()
-                .map(ComentarioMapper::toDTO)
-                .toList();
+        List<ComentarioDTO> lista =
+                comentarioService.listarPorOcorrencia(id)
+                        .stream()
+                        .map(ComentarioMapper::toDTO)
+                        .toList();
 
         return ResponseEntity.ok(lista);
     }
@@ -92,8 +120,11 @@ public class OcorrenciaController {
             @PathVariable Long id,
             @Valid @RequestBody ComentarioDTO dto
     ) {
-        Comentario criado = comentarioService.cadastrarNaOcorrencia(
-                id, ComentarioMapper.toModel(dto));
+        Comentario criado =
+                comentarioService.cadastrarNaOcorrencia(
+                        id,
+                        ComentarioMapper.toModel(dto)
+                );
 
         ComentarioDTO resposta = ComentarioMapper.toDTO(criado);
 

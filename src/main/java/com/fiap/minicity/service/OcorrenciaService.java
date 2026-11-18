@@ -130,7 +130,7 @@ public class OcorrenciaService {
      */
     public OcorrenciaDTO cadastrar(OcorrenciaDTO objeto) {
 
-        validarOcorrencia(objeto);
+        validarOcorrencia(objeto, true);
 
         Distrito distrito = distritoDAO.buscarPorId(
                 objeto.distrito().id()
@@ -280,7 +280,7 @@ public class OcorrenciaService {
             );
         }
 
-        // Busca a pessoa autenticada
+        // Busca a pessoa autenticada.
         Pessoa pessoa = pessoaDAO.buscarPorId(idPessoa);
 
         if (pessoa == null) {
@@ -289,7 +289,7 @@ public class OcorrenciaService {
             );
         }
 
-        // Busca o distrito
+        // Busca o distrito.
         Distrito distrito = distritoDAO.buscarPorId(
                 objeto.distrito().id()
         );
@@ -300,7 +300,7 @@ public class OcorrenciaService {
             );
         }
 
-        // Busca a categoria
+        // Busca a categoria.
         CategoriaOcorrencia categoria = categoriaDAO.buscarPorId(
                 objeto.categoria().id()
         );
@@ -311,7 +311,7 @@ public class OcorrenciaService {
             );
         }
 
-        // Cria a ocorrência
+        // Cria a ocorrência.
         Ocorrencia ocorrencia = new Ocorrencia();
 
         ocorrencia.setNomeTitulo(objeto.nomeTitulo());
@@ -321,7 +321,7 @@ public class OcorrenciaService {
         ocorrencia.setLongitude(objeto.longitude());
         ocorrencia.setDataOcorrencia(objeto.dataOcorrencia());
 
-        // Dados definidos automaticamente
+        // Dados definidos automaticamente.
         ocorrencia.setOrigem("CIDADAO");
         ocorrencia.setStatus("ATIVA");
         ocorrencia.setDataPublicacao(LocalDateTime.now());
@@ -340,26 +340,49 @@ public class OcorrenciaService {
     }
 
     /**
-     * Atualiza os dados de uma ocorrência existente.
-     * Verifica se a ocorrência, o distrito, a categoria e a pessoa ou fonte
-     * de dados existem, conforme a origem informada.
+     * Atualiza uma ocorrência criada pelo cidadão autenticado.
+     * Verifica se a ocorrência pertence à pessoa que está realizando
+     * a alteração e preserva os dados definidos pelo sistema.
      *
      * @param id identificador da ocorrência que será atualizada
      * @param objeto novos dados da ocorrência
+     * @param idPessoa identificador da pessoa autenticada
      * @return ocorrência atualizada em formato DTO
      * @throws RegraNegocioException se o ID ou os dados forem inválidos
-     * @throws RecursoNaoEncontradoException se a ocorrência ou algum relacionamento não existir
+     * @throws RecursoNaoEncontradoException se a ocorrência não existir
+     * ou não pertencer à pessoa autenticada
      */
-    public OcorrenciaDTO atualizar(Long id, OcorrenciaDTO objeto) {
+    public OcorrenciaDTO atualizar(
+            Long id,
+            OcorrenciaDTO objeto,
+            Long idPessoa
+    ) {
 
         validarId(id);
-        validarOcorrencia(objeto);
+        validarId(idPessoa);
 
-        if (dao.buscarPorId(id) == null) {
+        // Busca a ocorrência que será atualizada.
+        Ocorrencia existente = dao.buscarPorId(id);
+
+        // Verifica se a ocorrência pertence à pessoa autenticada.
+        if (existente == null ||
+                !"CIDADAO".equals(existente.getOrigem()) ||
+                existente.getPessoa() == null ||
+                !idPessoa.equals(existente.getPessoa().getId())) {
+
             throw new RecursoNaoEncontradoException(
                     "Ocorrência não encontrada."
             );
         }
+
+        // Permite atualizar somente ocorrências criadas por cidadãos.
+        if (objeto == null || !"CIDADAO".equals(objeto.origem())) {
+            throw new RegraNegocioException(
+                    "Somente ocorrências de cidadãos podem ser atualizadas por usuários."
+            );
+        }
+
+        validarOcorrencia(objeto, false);
 
         Distrito distrito = distritoDAO.buscarPorId(
                 objeto.distrito().id()
@@ -381,40 +404,21 @@ public class OcorrenciaService {
             );
         }
 
-        FonteDado fonte = null;
-        Pessoa pessoa = null;
-
-        if ("API".equals(objeto.origem())) {
-
-            fonte = fonteDAO.buscarPorId(
-                    objeto.fonte().id()
-            );
-
-            if (fonte == null) {
-                throw new RecursoNaoEncontradoException(
-                        "Fonte de dados não encontrada."
-                );
-            }
-
-        } else {
-
-            pessoa = pessoaDAO.buscarPorId(
-                    objeto.pessoa().id()
-            );
-
-            if (pessoa == null) {
-                throw new RecursoNaoEncontradoException(
-                        "Pessoa não encontrada."
-                );
-            }
-        }
-
+        // Converte os novos dados para o modelo.
         Ocorrencia ocorrencia = OcorrenciaMapper.toModel(objeto);
 
         ocorrencia.setDistrito(distrito);
         ocorrencia.setCategoria(categoria);
-        ocorrencia.setFonte(fonte);
-        ocorrencia.setPessoa(pessoa);
+
+        // Preserva o proprietário original.
+        ocorrencia.setPessoa(existente.getPessoa());
+
+        // Preserva os dados definidos pelo sistema.
+        ocorrencia.setFonte(existente.getFonte());
+        ocorrencia.setOrigem(existente.getOrigem());
+        ocorrencia.setStatus(existente.getStatus());
+        ocorrencia.setDataPublicacao(existente.getDataPublicacao());
+        ocorrencia.setDataAtualizacao(LocalDateTime.now());
 
         Ocorrencia atualizada = dao.atualizar(id, ocorrencia);
 
@@ -437,10 +441,36 @@ public class OcorrenciaService {
      * @throws RegraNegocioException se o ID for inválido
      * @throws RecursoNaoEncontradoException se a ocorrência não existir
      */
-    public boolean deletar(Long id) {
+
+    /**
+     * Exclui uma ocorrência criada pelo cidadão autenticado.
+     * Verifica se a ocorrência pertence à pessoa que está realizando
+     * a exclusão.
+     *
+     * @param id identificador da ocorrência
+     * @param idPessoa identificador da pessoa autenticada
+     * @return true se a ocorrência for excluída
+     */
+    public boolean deletar(Long id, Long idPessoa) {
 
         validarId(id);
+        validarId(idPessoa);
 
+        // Busca a ocorrência que será excluída.
+        Ocorrencia existente = dao.buscarPorId(id);
+
+        // Verifica se a ocorrência existe e pertence à pessoa autenticada.
+        if (existente == null ||
+                !"CIDADAO".equals(existente.getOrigem()) ||
+                existente.getPessoa() == null ||
+                !idPessoa.equals(existente.getPessoa().getId())) {
+
+            throw new RecursoNaoEncontradoException(
+                    "Ocorrência não encontrada."
+            );
+        }
+
+        // Exclui a ocorrência após confirmar a propriedade.
         boolean deletada = dao.deletar(id);
 
         if (!deletada) {
@@ -451,6 +481,7 @@ public class OcorrenciaService {
 
         return true;
     }
+
 
     /**
      * Carrega os dados completos dos relacionamentos de uma ocorrência.
@@ -513,9 +544,13 @@ public class OcorrenciaService {
      * distrito, categoria e os relacionamentos obrigatórios conforme a origem.
      *
      * @param objeto dados da ocorrência que serão validados
+     * @param exigirPessoa indica se a pessoa deve ser informada no DTO
      * @throws RegraNegocioException se os dados informados forem inválidos
      */
-    private void validarOcorrencia(OcorrenciaDTO objeto) {
+    private void validarOcorrencia(
+            OcorrenciaDTO objeto,
+            boolean exigirPessoa
+    ) {
 
         if (objeto == null) {
             throw new RegraNegocioException(
@@ -612,9 +647,11 @@ public class OcorrenciaService {
 
         } else {
 
-            if (objeto.pessoa() == null ||
-                    objeto.pessoa().id() == null ||
-                    objeto.pessoa().id() <= 0) {
+            if (exigirPessoa &&
+                    (objeto.pessoa() == null ||
+                            objeto.pessoa().id() == null ||
+                            objeto.pessoa().id() <= 0)) {
+
                 throw new RegraNegocioException(
                         "Ocorrências de cidadãos precisam de uma pessoa válida."
                 );

@@ -132,28 +132,55 @@ public class OcorrenciaDAO {
     public Ocorrencia atualizar(Long id, Ocorrencia x) {
 
         String sql = """
-                UPDATE OCORRENCIA SET
-                    nm_titulo = ?,
-                    ds_ocorrencia = ?,
-                    nr_gravidade = ?,
-                    ds_origem = ?,
-                    ds_status = ?,
-                    nr_latitude = ?,
-                    nr_longitude = ?,
-                    dt_ocorrencia = ?,
-                    dt_atualizacao = ?,
-                    id_distrito = ?,
-                    id_categoria = ?,
-                    id_fonte = ?,
-                    id_pessoa = ?,
-                    id_externo = ?
-                WHERE id_ocorrencia = ?
-                """;
+            UPDATE OCORRENCIA SET
+                nm_titulo = ?,
+                ds_ocorrencia = ?,
+                nr_gravidade = ?,
+                ds_origem = ?,
+                ds_status = ?,
+                nr_latitude = ?,
+                nr_longitude = ?,
+                dt_ocorrencia = ?,
+                dt_atualizacao = ?,
+                id_distrito = ?,
+                id_categoria = ?,
+                id_fonte = ?,
+                id_pessoa = ?,
+                id_externo = ?
+            WHERE id_ocorrencia = ?
+            """;
 
         try (Connection c = ConnectionFactory.obterConexao();
              PreparedStatement ps = c.prepareStatement(sql)) {
 
-            preencher(ps, x);
+            ps.setString(1, x.getNomeTitulo());
+            ps.setString(2, x.getDescOcorrencia());
+            ps.setObject(3, x.getGravidade());
+            ps.setString(4, x.getOrigem());
+            ps.setString(5, x.getStatus() == null ? "ATIVA" : x.getStatus());
+
+            ps.setObject(6, x.getLatitude());
+            ps.setObject(7, x.getLongitude());
+
+            DAOUtil.data(ps, 8, x.getDataOcorrencia());
+            DAOUtil.data(ps, 9, x.getDataAtualizacao());
+
+            ps.setLong(10, x.getDistrito().getId());
+            ps.setLong(11, x.getCategoria().getId());
+
+            if (x.getFonte() == null) {
+                ps.setNull(12, Types.NUMERIC);
+            } else {
+                ps.setLong(12, x.getFonte().getId());
+            }
+
+            if (x.getPessoa() == null) {
+                ps.setNull(13, Types.NUMERIC);
+            } else {
+                ps.setLong(13, x.getPessoa().getId());
+            }
+
+            ps.setString(14, x.getIdExterno());
             ps.setLong(15, id);
 
             if (ps.executeUpdate() == 0) {

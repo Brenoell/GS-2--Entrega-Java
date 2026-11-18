@@ -12,20 +12,10 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Classe responsável por realizar as operações de acesso ao banco de dados
- * relacionadas aos comentários.
- */
 @Repository
 public class ComentarioDAO {
 
-    /**
-     * Lista todos os comentários cadastrados no banco de dados,
-     * incluindo os dados da pessoa e do distrito relacionados.
-     *
-     * @return lista contendo todos os comentários
-     * @throws RuntimeException caso ocorra um erro ao consultar o banco
-     */
+    // Lista todos os comentários cadastrados.
     public List<Comentario> listar() {
         List<Comentario> lista = new ArrayList<>();
 
@@ -54,7 +44,7 @@ public class ComentarioDAO {
                 JOIN PESSOA p
                     ON c.id_pessoa = p.id_pessoa
 
-                JOIN DISTRITO d
+                LEFT JOIN DISTRITO d
                     ON c.id_distrito = d.id_distrito
 
                 ORDER BY c.dt_publicacao DESC
@@ -75,15 +65,7 @@ public class ComentarioDAO {
         }
     }
 
-    /**
-     * Lista os comentários vinculados a uma ocorrência específica,
-     * organizando os resultados pela data de publicação, do mais recente
-     * para o mais antigo.
-     *
-     * @param idOcorrencia identificador da ocorrência
-     * @return lista de comentários vinculados à ocorrência informada
-     * @throws RuntimeException caso ocorra um erro ao consultar o banco
-     */
+    // Lista os comentários de uma ocorrência específica.
     public List<Comentario> listarPorOcorrencia(Long idOcorrencia) {
         List<Comentario> lista = new ArrayList<>();
 
@@ -112,7 +94,7 @@ public class ComentarioDAO {
                 JOIN PESSOA p
                     ON c.id_pessoa = p.id_pessoa
 
-                JOIN DISTRITO d
+                LEFT JOIN DISTRITO d
                     ON c.id_distrito = d.id_distrito
 
                 WHERE c.id_ocorrencia = ?
@@ -139,13 +121,7 @@ public class ComentarioDAO {
         }
     }
 
-    /**
-     * Busca um comentário pelo seu identificador.
-     *
-     * @param id identificador do comentário
-     * @return comentário encontrado ou null caso não exista
-     * @throws RuntimeException caso ocorra um erro ao consultar o banco
-     */
+    // Busca um comentário pelo ID.
     public Comentario buscarPorId(Long id) {
         String sql = """
                 SELECT
@@ -172,7 +148,7 @@ public class ComentarioDAO {
                 JOIN PESSOA p
                     ON c.id_pessoa = p.id_pessoa
 
-                JOIN DISTRITO d
+                LEFT JOIN DISTRITO d
                     ON c.id_distrito = d.id_distrito
 
                 WHERE c.id_comentario = ?
@@ -196,14 +172,7 @@ public class ComentarioDAO {
         return null;
     }
 
-    /**
-     * Cadastra um novo comentário no banco de dados.
-     * Após a inserção, recupera o identificador gerado pelo banco.
-     *
-     * @param comentario objeto contendo os dados do comentário que será cadastrado
-     * @return objeto do comentário cadastrado com seu identificador preenchido
-     * @throws RuntimeException caso ocorra um erro ao inserir os dados
-     */
+    // Cadastra um novo comentário.
     public Comentario cadastrar(Comentario comentario) {
         String sql = """
                 INSERT INTO COMENTARIO
@@ -232,14 +201,7 @@ public class ComentarioDAO {
         }
     }
 
-    /**
-     * Atualiza os dados de um comentário existente no banco de dados.
-     *
-     * @param id identificador do comentário que será atualizado
-     * @param comentario objeto contendo os novos dados do comentário
-     * @return objeto atualizado ou null caso o comentário não seja encontrado
-     * @throws RuntimeException caso ocorra um erro ao atualizar os dados
-     */
+    // Atualiza um comentário existente.
     public Comentario atualizar(Long id, Comentario comentario) {
         String sql = """
                 UPDATE COMENTARIO
@@ -271,13 +233,7 @@ public class ComentarioDAO {
         return null;
     }
 
-    /**
-     * Remove um comentário do banco de dados pelo seu identificador.
-     *
-     * @param id identificador do comentário que será removido
-     * @return true se o comentário foi removido, false caso não tenha sido encontrado
-     * @throws RuntimeException caso ocorra um erro ao excluir os dados
-     */
+    // Exclui um comentário.
     public boolean deletar(Long id) {
         String sql = "DELETE FROM COMENTARIO WHERE id_comentario = ?";
 
@@ -293,23 +249,24 @@ public class ComentarioDAO {
         }
     }
 
-    /**
-     * Preenche os parâmetros do PreparedStatement com os dados do comentário.
-     * Também verifica se a ocorrência possui identificador para definir
-     * o valor correspondente no comando SQL.
-     *
-     * @param ps comando SQL que receberá os valores
-     * @param comentario objeto contendo os dados do comentário
-     * @throws SQLException caso ocorra um erro ao preencher os parâmetros
-     */
+    // Preenche os parâmetros do PreparedStatement.
     private void preencher(
             PreparedStatement ps,
             Comentario comentario
     ) throws SQLException {
 
         ps.setString(1, comentario.getDescConteudo());
+
         ps.setLong(2, comentario.getPessoa().getId());
-        ps.setLong(3, comentario.getDistrito().getId());
+
+        if (comentario.getDistrito() != null
+                && comentario.getDistrito().getId() != null) {
+
+            ps.setLong(3, comentario.getDistrito().getId());
+
+        } else {
+            ps.setNull(3, Types.NUMERIC);
+        }
 
         if (comentario.getOcorrencia() != null
                 && comentario.getOcorrencia().getId() != null) {
@@ -321,15 +278,7 @@ public class ComentarioDAO {
         }
     }
 
-    /**
-     * Converte os dados de uma linha do ResultSet em um objeto Comentario.
-     * Também cria e preenche os objetos relacionados Pessoa, Distrito
-     * e Ocorrencia.
-     *
-     * @param rs resultado da consulta SQL
-     * @return objeto Comentario preenchido com os dados da linha consultada
-     * @throws SQLException caso ocorra um erro ao acessar os dados do resultado
-     */
+    // Converte uma linha do ResultSet em um objeto Comentario.
     private Comentario mapear(ResultSet rs) throws SQLException {
 
         Pessoa pessoa = new Pessoa();
@@ -345,14 +294,22 @@ public class ComentarioDAO {
             pessoa.setDataCadastro(dataCadastro.toLocalDateTime());
         }
 
-        Distrito distrito = new Distrito(
-                rs.getLong("id_distrito"),
-                rs.getString("nm_distrito"),
-                rs.getString("ds_zona"),
-                rs.getDouble("ds_latitude"),
-                rs.getDouble("ds_longitude")
-        );
+        // O distrito pode ser nulo.
+        Distrito distrito = null;
 
+        long idDistrito = rs.getLong("id_distrito");
+
+        if (!rs.wasNull()) {
+            distrito = new Distrito(
+                    idDistrito,
+                    rs.getString("nm_distrito"),
+                    rs.getString("ds_zona"),
+                    rs.getDouble("ds_latitude"),
+                    rs.getDouble("ds_longitude")
+            );
+        }
+
+        // A ocorrência pode ser nula.
         Ocorrencia ocorrencia = null;
 
         long idOcorrencia = rs.getLong("id_ocorrencia");

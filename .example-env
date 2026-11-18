@@ -1,3 +1,5 @@
 SPRING_DATASOURCE_URL=jdbc:oracle:thin:@//meu-host:1521/meu-servico
 SPRING_DATASOURCE_USERNAME=meu_usuario
 SPRING_DATASOURCE_PASSWORD=minha_senha
+NEWS_API_KEY=minha_chave_newsapi
+CORS_ORIGINS=https://meu-front.vercel.app

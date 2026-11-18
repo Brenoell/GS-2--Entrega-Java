@@ -26,7 +26,7 @@ public class ComentarioDAO {
                     c.dt_publicacao,
 
                     p.id_pessoa,
-                    p.nm_nome,
+                    p.nm_pessoa,
                     p.ds_email,
                     p.ds_perfil,
                     p.dt_cadastro,
@@ -76,7 +76,7 @@ public class ComentarioDAO {
                     c.dt_publicacao,
 
                     p.id_pessoa,
-                    p.nm_nome,
+                    p.nm_pessoa,
                     p.ds_email,
                     p.ds_perfil,
                     p.dt_cadastro,
@@ -130,7 +130,7 @@ public class ComentarioDAO {
                     c.dt_publicacao,
 
                     p.id_pessoa,
-                    p.nm_nome,
+                    p.nm_pessoa,
                     p.ds_email,
                     p.ds_perfil,
                     p.dt_cadastro,
@@ -284,7 +284,7 @@ public class ComentarioDAO {
         Pessoa pessoa = new Pessoa();
 
         pessoa.setId(rs.getLong("id_pessoa"));
-        pessoa.setNome(rs.getString("nm_nome"));
+        pessoa.setNome(rs.getString("nm_pessoa"));
         pessoa.setEmail(rs.getString("ds_email"));
         pessoa.setPerfil(rs.getString("ds_perfil"));
 

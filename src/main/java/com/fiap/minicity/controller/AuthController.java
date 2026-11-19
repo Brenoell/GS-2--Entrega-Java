@@ -7,6 +7,7 @@ import com.fiap.minicity.exception.CredenciaisInvalidasException;
 import com.fiap.minicity.service.PessoaService;
 
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +31,7 @@ public class AuthController {
      */
     @PostMapping("/login")
     public ResponseEntity<PessoaDTO> login(
-            @RequestBody LoginDTO loginDTO,
+            @Valid @RequestBody LoginDTO loginDTO,
             HttpSession session
     ) {
         PessoaDTO pessoa = service.login(loginDTO);
